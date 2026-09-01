@@ -17,7 +17,10 @@ Item {
 
   property bool opened: false
   property string tab: "history"
-  property var setupReport: ({ ready: true, done: 0, total: 5, steps: [] })
+  // Not ready until something says so. The optimistic default meant that on a
+  // machine with no daemon the probe could not even start, onStreamFinished
+  // never fired, and the console kept claiming everything was fine.
+  property var setupReport: ({ ready: false, done: 0, total: 5, steps: [] })
   property var takes: []
   property int selected: 0
   property bool busy: false
@@ -30,7 +33,10 @@ Item {
   // minutes. Cleared when a refresh reports the model as present.
   property var pulling: ({})
 
-  readonly property bool ready: setupReport && setupReport.ready
+  // Gated on the binary existing as well as on the report, so a probe that
+  // never ran cannot leave the tabs on screen with nothing behind them.
+  readonly property bool ready: root.daemonPresent
+                                && setupReport && setupReport.ready === true
   readonly property var take: (takes && takes.length > selected) ? takes[selected] : null
 
   readonly property int pad: Style.space(22)
@@ -58,6 +64,12 @@ Item {
   function toggle() { opened ? close() : open("") }
 
   function refresh() {
+    probeDaemon.running = true
+    probeWeights.running = true
+    // Everything below is an `omavoi` subprocess. On a machine that has not
+    // installed it yet, asking anyway logs a failed spawn per probe, on every
+    // refresh, forever — and the answer is already on screen.
+    if (!root.daemonPresent) return
     probeSetup.running = true
     // The config carries the UI language, which every tab needs — not just
     // the one that displays the config.
@@ -108,6 +120,30 @@ Item {
     // is open, so the list follows it rather than polling.
     function onTakeFinished(text, rejected, changes, warnings) {
       if (root.opened && root.tab === "history") histProc.running = true
+    }
+  }
+
+  // Whether the daemon exists at all. Everything else on this screen assumes
+  // it does; the first-run flow is what runs when it does not.
+  property bool daemonPresent: true
+  Process {
+    id: probeDaemon
+    // The exit code, not the output: a login shell can print a profile's
+    // worth of noise around "yes" and the comparison then always fails.
+    command: ["sh", "-c", "command -v omavoi"]
+    onExited: function (code, status) { root.daemonPresent = code === 0 }
+  }
+
+  // ggml weights another tool already downloaded. Found rather than fetched:
+  // three gigabytes is not worth having twice.
+  property string foundWeights: ""
+  Process {
+    id: probeWeights
+    command: ["sh", "-lc",
+              "ls -1 \"$HOME\"/.local/share/*/models/ggml-large-v3*.bin " +
+              "\"$HOME\"/.local/share/omavoi/models/ggml/*.bin 2>/dev/null | head -1"]
+    stdout: StdioCollector {
+      onStreamFinished: root.foundWeights = text.trim()
     }
   }
 
@@ -331,6 +367,7 @@ Item {
               }
 
               Text {
+                visible: root.daemonPresent
                 text: root.ready
                       ? (link.state === "stopped" ? strings.t("state.stopped")
                                                   : strings.t("state." + link.state))
@@ -343,9 +380,27 @@ Item {
             }
           }
 
+          // ---- first run ----------------------------------------------
+          //
+          // With no daemon there is nothing to interrogate, so the checklist
+          // below has nothing to list. This asks the two questions instead and
+          // then installs, which is the only screen a new user should meet.
+          FirstRun {
+            visible: !root.daemonPresent
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            strings: strings
+            daemonPresent: root.daemonPresent
+            foundWeights: root.foundWeights
+            onFinished: root.refresh()
+          }
+
           // ---- setup --------------------------------------------------
+          //
+          // The daemon is installed but something it needs is not. It can say
+          // what, so this stays a checklist.
           Flickable {
-            visible: !root.ready
+            visible: root.daemonPresent && !root.ready
             Layout.fillWidth: true
             Layout.fillHeight: true
             contentHeight: setupCol.implicitHeight + root.pad * 2
