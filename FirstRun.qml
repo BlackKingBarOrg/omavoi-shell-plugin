@@ -46,7 +46,23 @@ Flickable {
     command: ["sh", "-c", "id -nG | tr ' ' '\\n' | grep -qx input"]
     onExited: function (code, status) { root.inInputGroup = code === 0 }
   }
-  Component.onCompleted: probeGroup.running = true
+  Component.onCompleted: { probeGroup.running = true; probeDb.running = true }
+
+  // Arch's own rule, not ours: `pacman -S` without -y fetches the versions the
+  // local database lists, and a database older than a few days lists versions
+  // the mirrors have already replaced. Every download then 404s. A machine
+  // that has installed these packages before has them cached and never sees
+  // it, which is exactly why this was missed until it ran somewhere fresh.
+  property real dbAgeDays: 0
+  Process {
+    id: probeDb
+    command: ["sh", "-c",
+              "echo $(( ( $(date +%s) - $(stat -c %Y /var/lib/pacman/sync/core.db) ) / 86400 ))"]
+    stdout: StdioCollector {
+      onStreamFinished: root.dbAgeDays = parseFloat(text.trim()) || 0
+    }
+  }
+  readonly property bool dbStale: root.dbAgeDays >= 1
 
   // Read below the keyboard layout and never grabbed, so whichever key this is
   // keeps doing whatever it normally does. These four normally do nothing on
@@ -147,17 +163,28 @@ Flickable {
       runner.command = step.argv
       runner.running = true
     }
+    // Held rather than published: pacman writes a warning per mirror it had to
+    // skip, and a step that then succeeds was showing those warnings on screen
+    // as though something had gone wrong.
+    property string held: ""
     stderr: StdioCollector {
-      onStreamFinished: if (text.trim() !== "") root.note(root.steps[root.at].key, text.trim())
+      onStreamFinished: runner.held = text.trim()
     }
     onExited: function (code, status) {
       var step = root.steps[root.at]
       if (code !== 0) {
+        if (runner.held !== "") root.note(step.key, runner.held)
         // 126/127 from pkexec is a cancelled or refused password dialog, which
         // is a decision rather than a fault.
+        var out = runner.held.toLowerCase()
+        var stale = out.indexOf("404") >= 0
+                    || out.indexOf("failed retrieving file") >= 0
+                    || out.indexOf("target not found") >= 0
         root.failure = (step.root && (code === 126 || code === 127))
                        ? root.t("first.cancelled")
-                       : root.tf("first.failed", step.label)
+                       : (step.root && stale)
+                         ? root.t("first.pacman404")
+                         : root.tf("first.failed", step.label)
         root.at = -1
         return
       }
@@ -369,6 +396,56 @@ Flickable {
           }
         }
       }
+    }
+
+    // ---- a database too old to install from ----
+    //
+    // Said before the attempt rather than after the failure, and offered as a
+    // button rather than a command — but in a terminal you can watch, because
+    // a whole-system upgrade is not something to run behind a progress line.
+    Rectangle {
+      Layout.fillWidth: true
+      Layout.topMargin: Style.space(6)
+      visible: root.dbStale && !root.done
+      implicitHeight: staleCol.implicitHeight + Style.space(20)
+      color: Qt.rgba(0.88, 0.69, 0.41, 0.08)
+      border.width: 1
+      border.color: "#e0af68"
+      radius: Style.cornerRadius
+
+      ColumnLayout {
+        id: staleCol
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: Style.space(11)
+        spacing: Style.space(6)
+        Text {
+          Layout.fillWidth: true
+          wrapMode: Text.Wrap
+          text: root.tf("first.dbstale", Math.round(root.dbAgeDays))
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+          color: "#e0af68"
+        }
+        Button {
+          text: root.t("first.updatebtn")
+          onClicked: {
+            updater.running = true
+            // The database changes under us, so what we know about it does not
+            // survive the update.
+            probeDb.running = true
+          }
+        }
+      }
+    }
+
+    Process {
+      id: updater
+      // Omarchy's own updater, in Omarchy's own way of surfacing root work.
+      command: ["omarchy-launch-floating-terminal-with-presentation",
+                "omarchy-update-system-pkgs"]
+      onExited: function (code, status) { probeDb.running = true }
     }
 
     // ---- the button, the failure, the end ----
