@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "ai.bkblab.omavoi",
+  "name": "Omavoi",
+  "version": "0.1.0",
+  "author": "bkblab.ai",
+  "license": "MIT",
+  "description": "Voice dictation: hold a key, talk, and the text lands in the focused window. Draws the recording HUD, a bar module, and the console; the model and microphone live in a separate daemon.",
+  "kinds": [
+    "bar-widget",
+    "service",
+    "overlay"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml",
+    "service": "Hud.qml",
+    "overlay": "Console.qml"
+  },
+  "barWidget": {
+    "displayName": "Omavoi",
+    "description": "Dictation state, and the way into setup",
+    "category": "Audio",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  },
+  "keepLoaded": true
+}

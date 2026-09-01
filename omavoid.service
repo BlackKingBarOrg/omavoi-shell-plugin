@@ -1,0 +1,25 @@
+[Unit]
+Description=Omavoi dictation daemon
+Documentation=https://github.com/BlackKingBarOrg/omavoi
+# The daemon needs the graphical session's PipeWire and Wayland sockets, so it
+# starts with the session rather than at boot.
+PartOf=graphical-session.target
+After=graphical-session.target pipewire.service
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/omavoi daemon
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=2
+# 78 is EX_CONFIG: the daemon exits with it when the machine is not set up
+# yet — no whisper.cpp, no weights, an API backend with no key. Retrying that
+# five times in ten seconds only buries the one useful line under a
+# start-limit, and the first-run screen wants to read the state, not race it.
+RestartPreventExitStatus=78
+# It holds a few GB of weights; do not let a leak take the session with it.
+MemoryHigh=12G
+Slice=session.slice
+
+[Install]
+WantedBy=graphical-session.target
