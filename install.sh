@@ -51,7 +51,12 @@ if (( REMOVE )); then
     systemctl --user disable --now omavoid.service 2>/dev/null || true
     say "disabled omavoid.service"
   fi
-  rm -f "$UNIT_DIR/omavoid.service" && say "removed the unit file"
+  # `rm -f` succeeds on a path that was never there, so the message has to
+  # test for the file rather than the command.
+  if [[ -e "$UNIT_DIR/omavoid.service" ]]; then
+    rm -f "$UNIT_DIR/omavoid.service"
+    say "removed the unit file"
+  fi
   systemctl --user daemon-reload
   echo "Done. The plugin itself is still installed; remove it with:"
   echo "  omarchy plugin remove $PLUGIN_ID"
