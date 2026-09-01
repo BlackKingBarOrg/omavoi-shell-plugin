@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -32,9 +33,25 @@ Flickable {
   function t(k) { return root.strings ? root.strings.t(k) : k }
   function tf(k, a) { return root.strings ? root.strings.tf(k, a) : k }
 
-  // -- the two answers ----------------------------------------------------
+  // -- the three answers --------------------------------------------------
   property string lang: ""
   property string model: ""
+  property string hotkey: ""
+
+  // evdev needs group membership, and the group only takes effect at the next
+  // login — so this has to be said, not silently fixed.
+  property bool inInputGroup: true
+  Process {
+    id: probeGroup
+    command: ["sh", "-c", "id -nG | tr ' ' '\\n' | grep -qx input"]
+    onExited: function (code, status) { root.inInputGroup = code === 0 }
+  }
+  Component.onCompleted: probeGroup.running = true
+
+  // Read below the keyboard layout and never grabbed, so whichever key this is
+  // keeps doing whatever it normally does. These four normally do nothing on
+  // their own, which is the whole reason they are the ones offered.
+  readonly property var hotkeyChoices: ["RIGHTALT", "RIGHTCTRL", "RIGHTMETA", "SCROLLLOCK"]
 
   readonly property var modelChoices: {
     var out = []
@@ -55,16 +72,31 @@ Flickable {
 
   readonly property var steps: {
     var chosen = (root.model === "reuse") ? "ggml:large-v3" : root.model
+    // One pkexec, because polkit prompts for every call. When the input group
+    // is also needed it joins the same shell line rather than asking twice —
+    // and the line is printed in full below before anything runs.
+    var rootArgv
+    if (root.inInputGroup) {
+      rootArgv = ["pkexec", "/usr/bin/pacman", "-S", "--needed", "--noconfirm"]
+                 .concat(root.packages)
+    } else {
+      rootArgv = ["pkexec", "/bin/sh", "-c",
+                  "pacman -S --needed --noconfirm " + root.packages.join(" ")
+                  + " && usermod -aG input " + Quickshell.env("USER")]
+    }
     var plan = [
       { key: "packages", root: true,
         label: root.t("first.step.packages"),
-        argv: ["pkexec", "/usr/bin/pacman", "-S", "--needed", "--noconfirm"].concat(root.packages) },
+        argv: rootArgv },
       { key: "daemon", root: false,
         label: root.t("first.step.daemon"),
         argv: ["uv", "tool", "install", root.repo] },
       { key: "language", root: false,
         label: root.t("first.step.language"),
-        argv: ["omavoi", "config", "set", "ui.language", root.lang] }
+        argv: ["omavoi", "config", "set", "ui.language", root.lang] },
+      { key: "hotkey", root: false,
+        label: root.t("first.step.hotkey"),
+        argv: ["omavoi", "config", "set", "hotkey.key", root.hotkey] }
     ]
     if (root.model !== "reuse")
       plan.push({ key: "weights", root: false, download: true,
@@ -90,7 +122,7 @@ Flickable {
   readonly property bool done: at >= steps.length
 
   function begin() {
-    if (root.lang === "" || root.model === "") return
+    if (root.lang === "" || root.model === "" || root.hotkey === "") return
     root.failure = ""
     root.log = ({})
     root.at = 0
@@ -227,14 +259,73 @@ Flickable {
       }
     }
 
+    // ---- 3. hotkey ----
+    ColumnLayout {
+      Layout.fillWidth: true
+      spacing: Style.space(6)
+      visible: !root.running && !root.done
+      Text {
+        text: "3  " + root.t("first.pick.hotkey")
+        font.family: Style.font.family
+        font.pixelSize: Style.font.caption
+        font.letterSpacing: 1
+        color: (root.lang !== "" && root.model !== "" && root.hotkey === "")
+               ? Color.accent : Color.muted
+      }
+      Flow {
+        Layout.fillWidth: true
+        spacing: Style.space(6)
+        Repeater {
+          model: root.hotkeyChoices
+          OmChip {
+            readonly property string code: modelData
+            label: code
+            on: root.hotkey === code
+            onClicked: root.hotkey = code
+          }
+        }
+        TextField {
+          id: otherKey
+          implicitWidth: Style.space(190)
+          placeholderText: root.t("first.hotkey.other")
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+          // Uppercased because that is how evdev names keys, and the config
+          // check that follows resolves the name before the daemon needs it.
+          onEditingFinished: if (text.trim() !== "")
+            root.hotkey = text.trim().toUpperCase()
+        }
+      }
+      Text {
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        text: root.t("first.hotkey.note")
+        font.family: Style.font.family
+        font.pixelSize: Style.font.caption
+        color: Qt.darker(Color.muted, 1.1)
+      }
+      // Not a failure, but it decides whether the key works today or after a
+      // relogin, so it cannot be left for the user to discover.
+      Text {
+        visible: !root.inInputGroup
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        text: root.t("first.group.needed")
+        font.family: Style.font.family
+        font.pixelSize: Style.font.caption
+        color: "#e0af68"
+      }
+    }
+
     // ---- 3. the commands, shown before anything runs ----
     ColumnLayout {
       Layout.fillWidth: true
       Layout.topMargin: Style.space(6)
       spacing: Style.space(3)
       visible: !root.done && root.lang !== "" && root.model !== ""
+               && root.hotkey !== ""
       Text {
-        text: "3  " + root.t("first.willrun")
+        text: "4  " + root.t("first.willrun")
         font.family: Style.font.family
         font.pixelSize: Style.font.caption
         font.letterSpacing: 1
@@ -287,7 +378,7 @@ Flickable {
       spacing: Style.space(10)
       Button {
         visible: !root.running && !root.done
-        enabled: root.lang !== "" && root.model !== ""
+        enabled: root.lang !== "" && root.model !== "" && root.hotkey !== ""
         text: root.failure === "" ? root.t("first.install") : root.t("first.retry")
         onClicked: root.begin()
       }

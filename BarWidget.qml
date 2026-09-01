@@ -71,17 +71,24 @@ BarWidget {
   // same component the clock uses.
   WidgetButton {
     id: reading
-    visible: root.recording || (root.needsSetup && !root.missing)
+    // The uninstalled state used to be excluded here and fell through to the
+    // glyph-only button, which on a fresh bar is an unlabelled download arrow
+    // among seven other icons — indistinguishable from a system downloads
+    // indicator, at the one moment the module is the only way in. It is the
+    // state that most needs a word next to it, so it gets one.
+    visible: root.recording || root.missing || root.needsSetup
     anchors.fill: parent
     bar: root.bar
     fontSize: Style.font.bodySmall
-    text: root.recording
-          ? "󰑊  " + root._clock(link.seconds)
-          : "󰇚  " + root.setupDone + "/" + root.setupTotal
+    text: root.recording ? "󰑊  " + root._clock(link.seconds)
+          : root.missing ? "󰍬  Setup"
+          : "󰍬  " + root.setupDone + "/" + root.setupTotal
     active: root.recording
     tooltipText: root.recording
                  ? "Recording · release the key to transcribe"
-                 : "Omavoi — setup unfinished"
+                 : root.missing
+                   ? "Omavoi — not set up yet. Click to start."
+                   : "Omavoi — setup unfinished"
     onPressed: function (b) { root.handle(b) }
   }
 
