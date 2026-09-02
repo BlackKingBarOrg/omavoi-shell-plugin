@@ -678,6 +678,87 @@ Item {
                   }
                 }
 
+                // ---- what went wrong -------------------------------
+                //
+                // These were recorded all along and shown only as a tint on
+                // the duration in the list. A step that falls through returns
+                // the previous text, so the take looks like plain dictation
+                // and the reason it is plain dictation was unreadable.
+                ColumnLayout {
+                  Layout.fillWidth: true
+                  spacing: Style.space(4)
+                  visible: root.take && root.take.warnings
+                           && root.take.warnings.length > 0
+                  Text {
+                    text: strings.t("hist.problems")
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.caption
+                    font.letterSpacing: 1
+                    color: Color.urgent
+                  }
+                  Repeater {
+                    model: (root.take && root.take.warnings) ? root.take.warnings : []
+                    Text {
+                      Layout.fillWidth: true
+                      wrapMode: Text.Wrap
+                      text: "· " + modelData
+                      font.family: Style.font.family
+                      font.pixelSize: Style.font.body
+                      color: "#e0af68"
+                    }
+                  }
+                }
+
+                // ---- the chain, step by step -----------------------------
+                ColumnLayout {
+                  Layout.fillWidth: true
+                  spacing: Style.space(4)
+                  visible: root.take && root.take.steps && root.take.steps.length > 0
+                  Text {
+                    text: strings.t("hist.steps")
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.caption
+                    font.letterSpacing: 1
+                    color: Color.muted
+                  }
+                  Repeater {
+                    model: (root.take && root.take.steps) ? root.take.steps : []
+                    RowLayout {
+                      readonly property var st: modelData
+                      readonly property bool fell: st.kept === true
+                      Layout.fillWidth: true
+                      spacing: Style.space(10)
+                      Text {
+                        Layout.preferredWidth: Style.space(14)
+                        text: fell ? "✕" : "✓"
+                        font.family: Style.font.family
+                        font.pixelSize: Style.font.caption
+                        color: fell ? Color.urgent : "#9ece6a"
+                      }
+                      Text {
+                        Layout.preferredWidth: Style.space(90)
+                        text: st.llm || "?"
+                        font.family: Style.font.family
+                        font.pixelSize: Style.font.body
+                        color: Color.foreground
+                      }
+                      Text {
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
+                        text: fell
+                              ? (strings.t("hist.fellthrough")
+                                 + (st.error ? " — " + st.error : ""))
+                              : ((st.seconds !== undefined
+                                  ? st.seconds.toFixed(2) + "s  " : "")
+                                 + (st.model || ""))
+                        font.family: Style.font.family
+                        font.pixelSize: Style.font.caption
+                        color: fell ? "#e0af68" : Color.muted
+                      }
+                    }
+                  }
+                }
+
                 Text {
                   visible: root.take && root.take.raw_text
                            && root.take.raw_text !== root.take.text

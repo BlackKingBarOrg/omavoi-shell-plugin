@@ -122,6 +122,9 @@ Item {
       "setup.hint": "or run  omavoi setup  in a terminal — same steps, same order",
 
       // ---- history
+      "hist.problems": "WHAT WENT WRONG",
+      "hist.steps": "LLM STEPS",
+      "hist.fellthrough": "fell through, kept the previous text",
       "hist.none": "no takes yet — hold %1 and talk",
       "hist.yourkey": "your key",
       "hist.dropped": "dropped — ",
@@ -344,6 +347,9 @@ Item {
       "setup.hint": "或者在终端里运行  omavoi setup  —— 步骤和顺序完全一样",
 
       // ---- history
+      "hist.problems": "出了什么问题",
+      "hist.steps": "LLM 步骤",
+      "hist.fellthrough": "已回落,保留了上一步的文本",
       "hist.none": "还没有记录 —— 按住 %1 说话",
       "hist.yourkey": "你的按键",
       "hist.dropped": "已丢弃 —— ",
@@ -566,6 +572,9 @@ Item {
       "setup.hint": "หรือรัน  omavoi setup  ในเทอร์มินัล — ขั้นตอนและลำดับเดียวกัน",
 
       // ---- history
+      "hist.problems": "เกิดอะไรผิดพลาด",
+      "hist.steps": "ขั้น LLM",
+      "hist.fellthrough": "ล้มเหลว จึงคงข้อความก่อนหน้าไว้",
       "hist.none": "ยังไม่มีรายการ — กด %1 ค้างไว้แล้วพูด",
       "hist.yourkey": "ปุ่มของคุณ",
       "hist.dropped": "ถูกทิ้ง — ",
@@ -788,6 +797,9 @@ Item {
       "setup.hint": "oder  omavoi setup  im Terminal ausführen — gleiche Schritte, gleiche Reihenfolge",
 
       // ---- history
+      "hist.problems": "WAS SCHIEFGING",
+      "hist.steps": "LLM-SCHRITTE",
+      "hist.fellthrough": "fiel durch, der vorige Text blieb",
       "hist.none": "noch keine Aufnahmen — %1 halten und sprechen",
       "hist.yourkey": "deine Taste",
       "hist.dropped": "verworfen — ",
@@ -1010,6 +1022,9 @@ Item {
       "setup.hint": "ou lance  omavoi setup  dans un terminal — mêmes étapes, même ordre",
 
       // ---- history
+      "hist.problems": "CE QUI A ÉCHOUÉ",
+      "hist.steps": "ÉTAPES LLM",
+      "hist.fellthrough": "a échoué, le texte précédent a été conservé",
       "hist.none": "aucune prise pour l'instant — maintiens %1 et parle",
       "hist.yourkey": "ta touche",
       "hist.dropped": "rejetée — ",
@@ -1232,6 +1247,9 @@ Item {
       "setup.hint": "o ejecuta  omavoi setup  en una terminal — los mismos pasos, el mismo orden",
 
       // ---- history
+      "hist.problems": "QUÉ FALLÓ",
+      "hist.steps": "PASOS LLM",
+      "hist.fellthrough": "falló, se conservó el texto anterior",
       "hist.none": "todavía no hay tomas — mantén %1 y habla",
       "hist.yourkey": "tu tecla",
       "hist.dropped": "descartada — ",
@@ -1454,6 +1472,9 @@ Item {
       "setup.hint": "またはターミナルで  omavoi setup  を実行 —— 手順も順序も同じです",
 
       // ---- history
+      "hist.problems": "何が失敗したか",
+      "hist.steps": "LLM ステップ",
+      "hist.fellthrough": "失敗したため、前のテキストを保持しました",
       "hist.none": "まだ録音がありません —— %1 を押しながら話してください",
       "hist.yourkey": "設定したキー",
       "hist.dropped": "破棄 —— ",
@@ -1676,6 +1697,9 @@ Item {
       "setup.hint": "hoặc chạy  omavoi setup  trong terminal — cùng các bước, cùng thứ tự",
 
       // ---- history
+      "hist.problems": "ĐÃ SAI Ở ĐÂU",
+      "hist.steps": "CÁC BƯỚC LLM",
+      "hist.fellthrough": "thất bại, giữ lại văn bản trước đó",
       "hist.none": "chưa có bản ghi nào — giữ %1 và nói",
       "hist.yourkey": "phím của bạn",
       "hist.dropped": "đã bỏ — ",

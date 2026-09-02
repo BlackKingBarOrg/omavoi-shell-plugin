@@ -84,7 +84,12 @@ Flickable {
   // already chosen — otherwise its first start exits 78 and the screen would
   // have to explain a failure it caused itself.
   readonly property string repo: "git+https://github.com/BlackKingBarOrg/omavoi"
-  readonly property var packages: ["uv", "whisper-cpp", "ggml-cpu", "ggml-vulkan", "xdotool"]
+  // llama-cpp is here because a shipped mode already needs it: `prose` has a
+  // local LLM step out of the box, and adding one is the first thing anyone
+  // does. Without the binary the step falls through silently and the take
+  // looks like plain dictation with no clue why. 7 MB to download.
+  readonly property var packages: ["uv", "whisper-cpp", "ggml-cpu", "ggml-vulkan",
+                                   "llama-cpp", "xdotool"]
 
   readonly property var steps: {
     var chosen = (root.model === "reuse") ? "ggml:large-v3" : root.model
