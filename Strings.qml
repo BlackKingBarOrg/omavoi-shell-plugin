@@ -115,6 +115,7 @@ Item {
       "nav.models": "Models",
       "nav.dictionary": "Dictionary",
       "nav.settings": "Settings",
+      "nav.setup": "Setup",
       "lang.label": "Language",
 
       // ---- state
@@ -362,6 +363,7 @@ Item {
       "nav.models": "模型",
       "nav.dictionary": "词典",
       "nav.settings": "设置",
+      "nav.setup": "安装",
       "lang.label": "语言",
 
       // ---- state
@@ -604,6 +606,7 @@ Item {
       "nav.models": "โมเดล",
       "nav.dictionary": "พจนานุกรม",
       "nav.settings": "ตั้งค่า",
+      "nav.setup": "ตั้งค่า",
       "lang.label": "ภาษา",
 
       // ---- state
@@ -846,6 +849,7 @@ Item {
       "nav.models": "Modelle",
       "nav.dictionary": "Wörterbuch",
       "nav.settings": "Einstellungen",
+      "nav.setup": "Einrichtung",
       "lang.label": "Sprache",
 
       // ---- state
@@ -1088,6 +1092,7 @@ Item {
       "nav.models": "Modèles",
       "nav.dictionary": "Dictionnaire",
       "nav.settings": "Réglages",
+      "nav.setup": "Installation",
       "lang.label": "Langue",
 
       // ---- state
@@ -1330,6 +1335,7 @@ Item {
       "nav.models": "Modelos",
       "nav.dictionary": "Diccionario",
       "nav.settings": "Ajustes",
+      "nav.setup": "Instalación",
       "lang.label": "Idioma",
 
       // ---- state
@@ -1572,6 +1578,7 @@ Item {
       "nav.models": "モデル",
       "nav.dictionary": "辞書",
       "nav.settings": "設定",
+      "nav.setup": "セットアップ",
       "lang.label": "言語",
 
       // ---- state
@@ -1814,6 +1821,7 @@ Item {
       "nav.models": "Mô hình",
       "nav.dictionary": "Từ điển",
       "nav.settings": "Cài đặt",
+      "nav.setup": "Cài đặt",
       "lang.label": "Ngôn ngữ",
 
       // ---- state

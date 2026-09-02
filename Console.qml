@@ -97,13 +97,23 @@ Item {
   }
 
   readonly property int pad: Style.space(22)
-  readonly property var tabs: [
-    { key: "history", label: strings.t("nav.history") },
-    { key: "modes", label: strings.t("nav.modes") },
-    { key: "models", label: strings.t("nav.models") },
-    { key: "dictionary", label: strings.t("nav.dictionary") },
-    { key: "settings", label: strings.t("nav.settings") }
-  ]
+  readonly property var tabs: {
+    var out = [
+      { key: "history", label: strings.t("nav.history") },
+      { key: "modes", label: strings.t("nav.modes") },
+      { key: "models", label: strings.t("nav.models") },
+      { key: "dictionary", label: strings.t("nav.dictionary") },
+      { key: "settings", label: strings.t("nav.settings") }
+    ]
+    // Reachable while anything is still missing, which is not the same as
+    // being blocked. `ready` means dictation works, and it stays true with
+    // the LLM engine absent -- so the checklist, and the one button that
+    // installs from it, used to be unreachable in exactly the state a person
+    // needs it: everything fine except the engine a shipped mode calls for.
+    if (root.setupReport && root.setupReport.done < root.setupReport.total)
+      out.push({ key: "setup", label: strings.t("nav.setup") })
+    return out
+  }
 
   function open(payloadJson) {
     // A caller can land you on a specific tab: the bar module opens setup,
@@ -212,6 +222,12 @@ Item {
         try { root.setupReport = JSON.parse(text) }
         catch (e) { root.setupReport = { ready: false, done: 0, total: 5, steps: [] } }
         if (root.opened && root.ready && root.takes.length === 0) root.loadTab()
+        // The setup tab goes away when it has nothing left to list, and the
+        // tab it was showing would otherwise stay selected with no way back
+        // to it and nothing on screen.
+        if (root.tab === "setup" && root.setupReport
+            && root.setupReport.done >= root.setupReport.total)
+          root.tab = "history"
       }
     }
   }
@@ -457,7 +473,7 @@ Item {
           // The daemon is installed but something it needs is not. It can say
           // what, so this stays a checklist.
           Flickable {
-            visible: root.daemonPresent && !root.ready
+            visible: root.daemonPresent && (!root.ready || root.tab === "setup")
             Layout.fillWidth: true
             Layout.fillHeight: true
             contentHeight: setupCol.implicitHeight + root.pad * 2
