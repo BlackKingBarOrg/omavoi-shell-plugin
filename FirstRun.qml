@@ -135,69 +135,20 @@ Flickable {
     return plan
   }
 
-  // -1 idle, 0..n-1 running that step, n done
-  property int at: -1
-  property string failure: ""
-  property var log: ({})
-  readonly property bool running: at >= 0 && at < steps.length
-  readonly property bool done: at >= steps.length
+  // Running the plan lives in StepRunner, shared with the update screen.
+  // These mirror its state so the pickers above can hide themselves.
+  readonly property int at: plan.at
+  readonly property string failure: plan.failure
+  readonly property bool running: plan.running
+  readonly property bool done: plan.done
 
   function begin() {
     if (root.lang === "" || root.model === "" || root.hotkey === "") return
-    root.failure = ""
-    root.log = ({})
-    root.at = 0
-    runner.start()
-  }
-
-  function note(key, text) {
-    var next = ({})
-    for (var k in root.log) next[k] = root.log[k]
-    next[key] = text
-    root.log = next
+    plan.begin()
   }
 
   contentHeight: col.implicitHeight + pad * 2
   clip: true
-
-  Process {
-    id: runner
-    function start() {
-      if (root.at < 0 || root.at >= root.steps.length) return
-      var step = root.steps[root.at]
-      runner.command = step.argv
-      runner.running = true
-    }
-    // Held rather than published: pacman writes a warning per mirror it had to
-    // skip, and a step that then succeeds was showing those warnings on screen
-    // as though something had gone wrong.
-    property string held: ""
-    stderr: StdioCollector {
-      onStreamFinished: runner.held = text.trim()
-    }
-    onExited: function (code, status) {
-      var step = root.steps[root.at]
-      if (code !== 0) {
-        if (runner.held !== "") root.note(step.key, runner.held)
-        // 126/127 from pkexec is a cancelled or refused password dialog, which
-        // is a decision rather than a fault.
-        var out = runner.held.toLowerCase()
-        var stale = out.indexOf("404") >= 0
-                    || out.indexOf("failed retrieving file") >= 0
-                    || out.indexOf("target not found") >= 0
-        root.failure = (step.root && (code === 126 || code === 127))
-                       ? root.t("first.cancelled")
-                       : (step.root && stale)
-                         ? root.t("first.pacman404")
-                         : root.tf("first.failed", step.label)
-        root.at = -1
-        return
-      }
-      root.at = root.at + 1
-      if (root.at < root.steps.length) runner.start()
-      else root.finished()
-    }
-  }
 
   ColumnLayout {
     id: col
@@ -349,7 +300,7 @@ Flickable {
       }
     }
 
-    // ---- 3. the commands, shown before anything runs ----
+    // ---- 4. the commands, shown before anything runs ----
     ColumnLayout {
       Layout.fillWidth: true
       Layout.topMargin: Style.space(6)
@@ -362,6 +313,15 @@ Flickable {
         font.pixelSize: Style.font.caption
         font.letterSpacing: 1
         color: Color.muted
+      }
+      StepRunner {
+        id: plan
+        Layout.fillWidth: true
+        strings: root.strings
+        steps: root.steps
+        // The heading is written above, in the numbered sequence.
+        showPlan: false
+        onFinished: root.finished()
       }
       Repeater {
         model: root.steps
@@ -466,7 +426,7 @@ Flickable {
       }
       Text {
         visible: root.running
-        text: root.running
+        text: root.running && root.at < root.steps.length
               ? root.tf("first.working", root.steps[root.at].label)
               : ""
         font.family: Style.font.family
@@ -492,17 +452,5 @@ Flickable {
       Item { Layout.fillWidth: true }
     }
 
-    // Whatever the failing step said, verbatim — it is usually the answer.
-    Repeater {
-      model: Object.keys(root.log)
-      Text {
-        Layout.fillWidth: true
-        wrapMode: Text.Wrap
-        text: root.log[modelData]
-        font.family: Style.font.family
-        font.pixelSize: Style.font.caption
-        color: Qt.darker(Color.muted, 1.1)
-      }
-    }
   }
 }

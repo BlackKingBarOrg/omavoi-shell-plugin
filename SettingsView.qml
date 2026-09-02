@@ -273,6 +273,22 @@ Flickable {
       }
     }
 
+    // ---- upgrading ----
+    //
+    // Here rather than behind a command, because the command for the daemon
+    // is not the one anybody would guess.
+    ColumnLayout {
+      Layout.fillWidth: true
+      Layout.topMargin: Style.space(10)
+      spacing: Style.space(8)
+      UpdateView {
+        Layout.fillWidth: true
+        strings: root.strings
+        setupReport: root.setupReport
+        onCommand: function (c) { root.command(c) }
+      }
+    }
+
     RowLayout {
       Layout.topMargin: Style.space(6)
       spacing: Style.space(8)

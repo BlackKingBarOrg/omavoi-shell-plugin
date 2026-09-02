@@ -96,6 +96,19 @@ Item {
       "first.step.mode": "default mode",
       "first.step.service": "unit and keybinding",
 
+      // ---- update
+      "up.title": "UPDATE",
+      "up.behind": "%1 new commits on the plugin's branch",
+      "up.current": "Up to date",
+      "up.unknown": "Cannot tell — the plugin was not installed from git",
+      "up.dirty": "The installed plugin has local edits, so it cannot fast-forward. Discard them with: git -C ~/.config/omarchy/plugins/ai.bkblab.omavoi checkout -- .",
+      "up.run": "Update",
+      "up.again": "Check again",
+      "up.done": "Updated",
+      "up.step.plugin": "the plugin",
+      "up.step.daemon": "the daemon",
+      "up.step.restart": "restart",
+
       // ---- nav
       "nav.history": "History",
       "nav.modes": "Modes",
@@ -320,6 +333,19 @@ Item {
       "first.step.use": "选用模型",
       "first.step.mode": "默认模式",
       "first.step.service": "服务与快捷键",
+
+      // ---- update
+      "up.title": "更新",
+      "up.behind": "插件所在分支上有 %1 个新提交",
+      "up.current": "已是最新",
+      "up.unknown": "无法判断 —— 这个插件不是从 git 安装的",
+      "up.dirty": "已安装的插件里有本地改动,所以无法 fast-forward。用这条丢弃:git -C ~/.config/omarchy/plugins/ai.bkblab.omavoi checkout -- .",
+      "up.run": "开始更新",
+      "up.again": "再检查一次",
+      "up.done": "已更新",
+      "up.step.plugin": "插件",
+      "up.step.daemon": "守护进程",
+      "up.step.restart": "重启服务",
 
       // ---- nav
       "nav.history": "历史",
@@ -546,6 +572,19 @@ Item {
       "first.step.mode": "โหมดเริ่มต้น",
       "first.step.service": "ยูนิตและปุ่มลัด",
 
+      // ---- update
+      "up.title": "อัปเดต",
+      "up.behind": "มี %1 คอมมิตใหม่บนสาขาของปลั๊กอิน",
+      "up.current": "เป็นรุ่นล่าสุดแล้ว",
+      "up.unknown": "บอกไม่ได้ — ปลั๊กอินนี้ไม่ได้ติดตั้งจาก git",
+      "up.dirty": "ปลั๊กอินที่ติดตั้งมีการแก้ไขในเครื่อง จึง fast-forward ไม่ได้ ทิ้งด้วย: git -C ~/.config/omarchy/plugins/ai.bkblab.omavoi checkout -- .",
+      "up.run": "อัปเดต",
+      "up.again": "ตรวจอีกครั้ง",
+      "up.done": "อัปเดตแล้ว",
+      "up.step.plugin": "ปลั๊กอิน",
+      "up.step.daemon": "เดมอน",
+      "up.step.restart": "รีสตาร์ต",
+
       // ---- nav
       "nav.history": "ประวัติ",
       "nav.modes": "โหมด",
@@ -770,6 +809,19 @@ Item {
       "first.step.use": "Modell auswählen",
       "first.step.mode": "Vorgabemodus",
       "first.step.service": "Unit und Tastenkürzel",
+
+      // ---- update
+      "up.title": "AKTUALISIEREN",
+      "up.behind": "%1 neue Commits auf dem Zweig des Plugins",
+      "up.current": "Aktuell",
+      "up.unknown": "Nicht feststellbar — das Plugin wurde nicht aus git installiert",
+      "up.dirty": "Das installierte Plugin hat lokale Änderungen und kann nicht vorspulen. Verwirf sie mit: git -C ~/.config/omarchy/plugins/ai.bkblab.omavoi checkout -- .",
+      "up.run": "Aktualisieren",
+      "up.again": "Erneut prüfen",
+      "up.done": "Aktualisiert",
+      "up.step.plugin": "das Plugin",
+      "up.step.daemon": "der Dienst",
+      "up.step.restart": "neu starten",
 
       // ---- nav
       "nav.history": "Verlauf",
@@ -996,6 +1048,19 @@ Item {
       "first.step.mode": "mode par défaut",
       "first.step.service": "unité et raccourci",
 
+      // ---- update
+      "up.title": "MISE À JOUR",
+      "up.behind": "%1 nouveaux commits sur la branche du plugin",
+      "up.current": "À jour",
+      "up.unknown": "Impossible de savoir — le plugin n'a pas été installé depuis git",
+      "up.dirty": "Le plugin installé a des modifications locales, il ne peut pas avancer. Abandonne-les avec : git -C ~/.config/omarchy/plugins/ai.bkblab.omavoi checkout -- .",
+      "up.run": "Mettre à jour",
+      "up.again": "Revérifier",
+      "up.done": "Mis à jour",
+      "up.step.plugin": "le plugin",
+      "up.step.daemon": "le démon",
+      "up.step.restart": "redémarrer",
+
       // ---- nav
       "nav.history": "Historique",
       "nav.modes": "Modes",
@@ -1220,6 +1285,19 @@ Item {
       "first.step.use": "seleccionar el modelo",
       "first.step.mode": "modo por defecto",
       "first.step.service": "unidad y atajo",
+
+      // ---- update
+      "up.title": "ACTUALIZAR",
+      "up.behind": "%1 commits nuevos en la rama del plugin",
+      "up.current": "Al día",
+      "up.unknown": "No se puede saber — el plugin no se instaló desde git",
+      "up.dirty": "El plugin instalado tiene cambios locales, así que no puede avanzar. Descártalos con: git -C ~/.config/omarchy/plugins/ai.bkblab.omavoi checkout -- .",
+      "up.run": "Actualizar",
+      "up.again": "Volver a comprobar",
+      "up.done": "Actualizado",
+      "up.step.plugin": "el plugin",
+      "up.step.daemon": "el demonio",
+      "up.step.restart": "reiniciar",
 
       // ---- nav
       "nav.history": "Historial",
@@ -1446,6 +1524,19 @@ Item {
       "first.step.mode": "既定のモード",
       "first.step.service": "ユニットとキー割り当て",
 
+      // ---- update
+      "up.title": "更新",
+      "up.behind": "プラグインのブランチに %1 件の新しいコミットがあります",
+      "up.current": "最新です",
+      "up.unknown": "判定できません —— このプラグインは git から入れたものではありません",
+      "up.dirty": "インストール済みのプラグインにローカルの変更があるため早送りできません。次で破棄してください: git -C ~/.config/omarchy/plugins/ai.bkblab.omavoi checkout -- .",
+      "up.run": "更新する",
+      "up.again": "もう一度確認",
+      "up.done": "更新しました",
+      "up.step.plugin": "プラグイン",
+      "up.step.daemon": "デーモン",
+      "up.step.restart": "再起動",
+
       // ---- nav
       "nav.history": "履歴",
       "nav.modes": "モード",
@@ -1670,6 +1761,19 @@ Item {
       "first.step.use": "chọn mô hình",
       "first.step.mode": "chế độ mặc định",
       "first.step.service": "unit và phím tắt",
+
+      // ---- update
+      "up.title": "CẬP NHẬT",
+      "up.behind": "có %1 commit mới trên nhánh của plugin",
+      "up.current": "Đã mới nhất",
+      "up.unknown": "Không xác định được — plugin này không cài từ git",
+      "up.dirty": "Plugin đã cài có thay đổi cục bộ nên không fast-forward được. Hãy bỏ chúng bằng: git -C ~/.config/omarchy/plugins/ai.bkblab.omavoi checkout -- .",
+      "up.run": "Cập nhật",
+      "up.again": "Kiểm tra lại",
+      "up.done": "Đã cập nhật",
+      "up.step.plugin": "plugin",
+      "up.step.daemon": "dịch vụ",
+      "up.step.restart": "khởi động lại",
 
       // ---- nav
       "nav.history": "Lịch sử",
