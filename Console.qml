@@ -39,6 +39,63 @@ Item {
                                 && setupReport && setupReport.ready === true
   readonly property var take: (takes && takes.length > selected) ? takes[selected] : null
 
+  // The checklist's root work, gathered so it can be done rather than copied.
+  //
+  // First-run and the update screen both install behind one button already;
+  // the checklist was the one screen that handed you a command and made you
+  // find a terminal. Everything it asks for is still printed before it runs.
+  readonly property var rootPackages: {
+    var out = []
+    var steps = (root.setupReport && root.setupReport.steps) || []
+    for (var i = 0; i < steps.length; i++) {
+      var s = steps[i]
+      if (s.done || !s.needs_root) continue
+      if (String(s.command || "").indexOf("pacman") < 0) continue
+      var parts = String(s.command).split(/\s+/)
+      for (var j = 0; j < parts.length; j++)
+        if (parts[j] !== "" && parts[j][0] !== "-"
+            && parts[j] !== "sudo" && parts[j] !== "pacman")
+          out.push(parts[j])
+    }
+    return out
+  }
+  readonly property bool rootGroupNeeded: {
+    var steps = (root.setupReport && root.setupReport.steps) || []
+    for (var i = 0; i < steps.length; i++) {
+      var s = steps[i]
+      if (!s.done && s.needs_root && String(s.command || "").indexOf("usermod") >= 0)
+        return true
+    }
+    return false
+  }
+  readonly property var rootPlan: {
+    var pkgs = root.rootPackages
+    if (pkgs.length === 0 && !root.rootGroupNeeded) return []
+    // One pkexec, because polkit prompts for every call: pacman is
+    // auth_admin rather than auth_admin_keep. When the input group is also
+    // needed it joins the same shell line rather than asking twice, exactly
+    // as the first-run screen does it.
+    var argv
+    if (pkgs.length > 0 && root.rootGroupNeeded)
+      argv = ["pkexec", "/bin/sh", "-c",
+              "pacman -S --needed --noconfirm " + pkgs.join(" ")
+              + " && usermod -aG input " + Quickshell.env("USER")]
+    else if (pkgs.length > 0)
+      argv = ["pkexec", "/usr/bin/pacman", "-S", "--needed", "--noconfirm"].concat(pkgs)
+    else
+      argv = ["pkexec", "/usr/bin/usermod", "-aG", "input", Quickshell.env("USER")]
+    // Restarting is not tidiness. A backend remembers "llama-server is not
+    // installed" for the life of the process, and reload deliberately carries
+    // the registry over rather than drop resident weights -- so installing the
+    // binary alone leaves the daemon still saying it is missing.
+    return [
+      { key: "packages", root: true, label: strings.t("first.step.packages"),
+        argv: argv },
+      { key: "restart", label: strings.t("up.step.restart"),
+        argv: ["systemctl", "--user", "restart", "omavoid"] }
+    ]
+  }
+
   readonly property int pad: Style.space(22)
   readonly property var tabs: [
     { key: "history", label: strings.t("nav.history") },
@@ -517,6 +574,62 @@ Item {
                     font.family: Style.font.family
                     font.pixelSize: Style.font.caption
                     color: Qt.darker(Color.muted, 1.15)
+                  }
+                }
+              }
+
+              // Root steps, run here instead of sending you to a terminal.
+              // Hidden by refresh() once there is nothing left needing root.
+              ColumnLayout {
+                visible: root.rootPlan.length > 0
+                Layout.topMargin: Style.space(18)
+                Layout.fillWidth: true
+                spacing: Style.space(6)
+
+                Text {
+                  Layout.fillWidth: true
+                  wrapMode: Text.Wrap
+                  text: strings.t("setup.rootblurb")
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.caption
+                  color: Color.muted
+                }
+
+                StepRunner {
+                  id: setupRoot
+                  Layout.fillWidth: true
+                  strings: strings
+                  steps: root.rootPlan
+                  onFinished: root.refresh()
+                }
+
+                RowLayout {
+                  Layout.fillWidth: true
+                  spacing: Style.space(10)
+                  Button {
+                    visible: !setupRoot.running
+                    text: setupRoot.failure !== "" ? strings.t("first.retry")
+                                                   : strings.t("setup.rootrun")
+                    onClicked: { setupRoot.reset(); setupRoot.begin() }
+                  }
+                  Text {
+                    visible: setupRoot.running
+                    // `at` is -1 while idle, and steps[-1] is undefined.
+                    text: setupRoot.at >= 0 && setupRoot.at < root.rootPlan.length
+                          ? strings.tf("first.working", root.rootPlan[setupRoot.at].label)
+                          : ""
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.body
+                    color: Color.accent
+                  }
+                  Text {
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    visible: setupRoot.failure !== ""
+                    text: setupRoot.failure
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.caption
+                    color: Color.urgent
                   }
                 }
               }

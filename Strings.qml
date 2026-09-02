@@ -131,6 +131,10 @@ Item {
       "setup.optional": "optional",
       "setup.copy": "Copy",
       "setup.run": "Run",
+      // Root steps are run here now, not copied out to a terminal: the
+      // first-run and update screens already install behind one button.
+      "setup.rootrun": "Install these",
+      "setup.rootblurb": "The steps above that need root can be done here, in one password prompt — polkit treats pacman as auth_admin, so asking in two calls means being asked twice. The daemon is restarted afterwards: it remembers a missing engine for the life of the process, so installing the binary alone would leave it still saying the engine is not there.",
       "setup.recheck": "Re-check",
       "setup.hint": "or run  omavoi setup  in a terminal — same steps, same order",
 
@@ -374,6 +378,8 @@ Item {
       "setup.optional": "可选",
       "setup.copy": "复制",
       "setup.run": "运行",
+      "setup.rootrun": "一次装好",
+      "setup.rootblurb": "上面需要 root 的步骤可以在这里一次做完，只弹一次密码框 —— polkit 把 pacman 当作 auth_admin，分两次调用就会问两次密码。装完会重启守护进程：它对「引擎未安装」的判断在进程存活期间是缓存的，只装二进制的话它仍会说引擎不在。",
       "setup.recheck": "重新检查",
       "setup.hint": "或者在终端里运行  omavoi setup  —— 步骤和顺序完全一样",
 
@@ -614,6 +620,8 @@ Item {
       "setup.optional": "ไม่บังคับ",
       "setup.copy": "คัดลอก",
       "setup.run": "รัน",
+      "setup.rootrun": "ติดตั้งทั้งหมดนี้",
+      "setup.rootblurb": "ขั้นตอนด้านบนที่ต้องใช้ root ทำได้จากที่นี่ในการถามรหัสผ่านครั้งเดียว — polkit ถือว่า pacman เป็น auth_admin ถ้าเรียกสองครั้งก็จะถูกถามสองครั้ง หลังจากนั้นจะรีสตาร์ตเดมอน เพราะมันจำว่าเอนจินไม่มีอยู่ไปตลอดอายุโปรเซส การติดตั้งไบนารีอย่างเดียวจึงยังทำให้มันบอกว่าไม่มีเอนจิน",
       "setup.recheck": "ตรวจอีกครั้ง",
       "setup.hint": "หรือรัน  omavoi setup  ในเทอร์มินัล — ขั้นตอนและลำดับเดียวกัน",
 
@@ -854,6 +862,8 @@ Item {
       "setup.optional": "optional",
       "setup.copy": "Kopieren",
       "setup.run": "Ausführen",
+      "setup.rootrun": "Diese installieren",
+      "setup.rootblurb": "Die Schritte oben, die root brauchen, lassen sich hier erledigen, in einer einzigen Passwortabfrage — polkit behandelt pacman als auth_admin, zwei Aufrufe heißen also zweimal gefragt werden. Danach wird der Daemon neu gestartet: er merkt sich eine fehlende Engine für die Lebensdauer des Prozesses, das Binary allein zu installieren würde ihn weiterhin sagen lassen, sie fehle.",
       "setup.recheck": "Neu prüfen",
       "setup.hint": "oder  omavoi setup  im Terminal ausführen — gleiche Schritte, gleiche Reihenfolge",
 
@@ -1094,6 +1104,8 @@ Item {
       "setup.optional": "facultatif",
       "setup.copy": "Copier",
       "setup.run": "Exécuter",
+      "setup.rootrun": "Tout installer",
+      "setup.rootblurb": "Les étapes ci-dessus qui demandent root peuvent être faites ici, en une seule demande de mot de passe — polkit traite pacman comme auth_admin, donc deux appels signifient deux demandes. Le démon est ensuite redémarré : il retient l'absence d'un moteur pour toute la durée du processus, installer le binaire seul le laisserait continuer à dire qu'il manque.",
       "setup.recheck": "Revérifier",
       "setup.hint": "ou lance  omavoi setup  dans un terminal — mêmes étapes, même ordre",
 
@@ -1334,6 +1346,8 @@ Item {
       "setup.optional": "opcional",
       "setup.copy": "Copiar",
       "setup.run": "Ejecutar",
+      "setup.rootrun": "Instalar esto",
+      "setup.rootblurb": "Los pasos de arriba que necesitan root se pueden hacer aquí, con una sola petición de contraseña — polkit trata pacman como auth_admin, así que en dos llamadas te la pide dos veces. Después se reinicia el demonio: recuerda que falta un motor durante toda la vida del proceso, así que instalar solo el binario lo dejaría diciendo que sigue faltando.",
       "setup.recheck": "Volver a comprobar",
       "setup.hint": "o ejecuta  omavoi setup  en una terminal — los mismos pasos, el mismo orden",
 
@@ -1574,6 +1588,8 @@ Item {
       "setup.optional": "任意",
       "setup.copy": "コピー",
       "setup.run": "実行",
+      "setup.rootrun": "まとめて入れる",
+      "setup.rootblurb": "上の root が必要な手順は、ここでパスワード入力一回で済ませられます —— polkit は pacman を auth_admin として扱うため、二回に分けて呼べば二回聞かれます。その後デーモンを再起動します。エンジンが無いという判断はプロセスが生きている間キャッシュされるので、バイナリを入れるだけでは無いと言い続けます。",
       "setup.recheck": "再確認",
       "setup.hint": "またはターミナルで  omavoi setup  を実行 —— 手順も順序も同じです",
 
@@ -1814,6 +1830,8 @@ Item {
       "setup.optional": "không bắt buộc",
       "setup.copy": "Sao chép",
       "setup.run": "Chạy",
+      "setup.rootrun": "Cài các mục này",
+      "setup.rootblurb": "Các bước ở trên cần root có thể làm ngay tại đây, chỉ hỏi mật khẩu một lần — polkit xem pacman là auth_admin, gọi hai lần thì bị hỏi hai lần. Sau đó daemon được khởi động lại: nó ghi nhớ việc thiếu engine trong suốt vòng đời tiến trình, nên chỉ cài binary thôi thì nó vẫn báo là thiếu.",
       "setup.recheck": "Kiểm tra lại",
       "setup.hint": "hoặc chạy  omavoi setup  trong terminal — cùng các bước, cùng thứ tự",
 
