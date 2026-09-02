@@ -129,7 +129,11 @@ ColumnLayout {
     visible: root.pluginDirty
     Layout.fillWidth: true
     wrapMode: Text.Wrap
-    text: root.t("up.dirty")
+    // The advice has to name the repository, and "checkout -- ." was wrong
+    // anyway: it restores modified files and leaves untracked ones behind,
+    // which still blocks the fast-forward.
+    text: root.tf("up.dirty",
+                  "https://github.com/BlackKingBarOrg/omavoi-shell-plugin")
     font.family: Style.font.family
     font.pixelSize: Style.font.caption
     color: Color.urgent
