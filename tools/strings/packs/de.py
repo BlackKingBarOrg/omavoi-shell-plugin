@@ -93,6 +93,10 @@ PACK = {
 
  "modes.wontfit": 'braucht %1 frei',
  "modes.blocked": 'nicht gewechselt — das Modell dieses Modus passt gerade nicht in den VRAM',
+ "modes.speechmodel": 'Gewichte',
+ "modes.speechglobal": 'was geladen ist',
+ "modes.speechonly1": 'Für diese Engine ist nur ein Satz Gewichte heruntergeladen. Der Rest steht im Tab Modelle — ein kleinerer lohnt sich für Modi, in denen Geschwindigkeit mehr zählt als Genauigkeit.',
+ "modes.newllm": 'HERUNTERGELADENE GEWICHTE, DIE NOCH NIEMAND NENNT',
  "modes.newname": "Name des neuen Modus",
  "modes.here": "hier",
  "modes.fallback": "Rückfall",

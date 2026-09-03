@@ -92,6 +92,10 @@ PACK = {
 
  "modes.wontfit": 'cần %1 trống',
  "modes.blocked": 'chưa chuyển — mô hình của chế độ này hiện không vừa VRAM',
+ "modes.speechmodel": 'trọng số',
+ "modes.speechglobal": 'cái đang được nạp',
+ "modes.speechonly1": 'Chỉ có một bộ trọng số đã tải cho engine này. Phần còn lại ở thẻ Mô hình — một bộ nhỏ hơn đáng có cho những chế độ cần nhanh hơn là chính xác.',
+ "modes.newllm": 'TRỌNG SỐ ĐÃ TẢI MÀ CHƯA CÓ MỤC NÀO GỌI',
  "modes.newname": "tên chế độ mới",
  "modes.here": "hiện tại",
  "modes.fallback": "dự phòng",

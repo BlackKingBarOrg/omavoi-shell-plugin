@@ -146,7 +146,9 @@ Item {
 
   function loadTab() {
     if (tab === "history") { histProc.running = true; return }
-    if (tab === "modes") { modesProc.running = true; return }
+    // The catalogue too: a mode names its own speech model and its own LLM
+    // entries, so the pickers need to know what is on disk.
+    if (tab === "modes") { modesProc.running = true; modelsProc.running = true; return }
     if (tab === "models") { modelsProc.running = true; modesProc.running = true; return }
     if (tab === "dictionary") { dictProc.running = true; namesProc.running = true; return }
     if (tab === "settings") { configProc.running = true; return }
@@ -1014,6 +1016,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             payload: root.modesData
+            catalogue: root.modelsData
             onCommand: function (c) { root.apply(c) }
             onCommandArgs: function (a) { root.applyArgs(a) }
           }

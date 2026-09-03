@@ -17,6 +17,31 @@ Item {
   readonly property int pad: Style.space(18)
 
   property var strings: null
+  // `omavoi model list --json`: what is on disk, and which llm entries exist.
+  property var catalogue: ({ models: [], llm: [] })
+
+  readonly property bool ggml: String((catalogue.backend) || "") === "local-whispercpp"
+  // Only the weights the running engine can read, and only what is downloaded
+  // — a mode changes the model, never the engine.
+  readonly property var speechChoices: (catalogue.models || []).filter(function (m) {
+    return m.kind === "speech" && m.downloaded
+           && (root.ggml ? m.fmt === "ggml" : m.fmt === "ct2")
+  })
+  // Local LLM weights that no entry points at yet: each one can become an
+  // entry, which is the unit a step names.
+  readonly property var llmSpare: (catalogue.models || []).filter(function (m) {
+    if (m.kind !== "llm" || !m.downloaded) return false
+    var taken = (catalogue.llm || [])
+    for (var i = 0; i < taken.length; i++)
+      if (String(taken[i].model) === String(m.key)) return false
+    return true
+  })
+  function llmModelOf(name) {
+    var l = catalogue.llm || []
+    for (var i = 0; i < l.length; i++)
+      if (l[i].name === name) return String(l[i].model || "")
+    return ""
+  }
   // The mode a click just refused to enter, so the reason appears next to the
   // mode rather than only in a log the user will never open.
   property string blocked: ""
@@ -427,6 +452,50 @@ Item {
               color: Qt.darker(Color.muted, 1.1)
             }
           }
+          // A mode names its own weights, or takes whatever is loaded. The
+          // switch costs one reload — measured at 3.7 s for large-v3 — and it
+          // is paid when the mode changes, not when you dictate.
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Style.space(9)
+            Text {
+              Layout.preferredWidth: Style.space(96)
+              text: root.t("modes.speechmodel")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Color.muted
+            }
+            Flow {
+              Layout.fillWidth: true
+              spacing: Style.space(6)
+              OmChip {
+                label: root.t("modes.speechglobal")
+                on: !(root.mode && root.mode.speech_model)
+                onClicked: root.commandArgs(
+                  ["omavoi", "mode", "set", root.current, "speech_model", ""])
+              }
+              Repeater {
+                model: root.speechChoices
+                OmChip {
+                  readonly property var entry: modelData
+                  label: entry.key
+                  on: root.mode && String(root.mode.speech_model) === String(entry.key)
+                  onClicked: root.commandArgs(
+                    ["omavoi", "mode", "set", root.current, "speech_model", entry.key])
+                }
+              }
+            }
+          }
+          Text {
+            visible: root.speechChoices.length <= 1
+            Layout.fillWidth: true
+            wrapMode: Text.Wrap
+            text: root.t("modes.speechonly1")
+            font.family: Style.font.family
+            font.pixelSize: Style.font.caption
+            color: Qt.darker(Color.muted, 1.1)
+          }
+
           Text {
             text: root.t("modes.decoderhint")
             font.family: Style.font.family
@@ -555,7 +624,12 @@ Item {
                     model: root.llms
                     OmChip {
                       readonly property string llmName: modelData
-                      label: llmName
+                      // The model, not just the name: two entries differ only
+                      // by which weights they run, and that is the whole point
+                      // of having two.
+                      label: root.llmModelOf(llmName) !== ""
+                             ? llmName + " · " + root.llmModelOf(llmName).replace("llm:", "")
+                             : llmName
                       on: llmName === step.llm
                       onClicked: if (!on) root.commandArgs(
                         ["omavoi", "mode", "step", root.current, "llm",
@@ -608,7 +682,11 @@ Item {
               model: root.llms
               OmChip {
                 readonly property string llmName: modelData
-                label: llmName
+                // With the model, for the same reason as the row above: two
+                // entries are only worth having if you can tell them apart.
+                label: root.llmModelOf(llmName) !== ""
+                       ? llmName + " · " + root.llmModelOf(llmName).replace("llm:", "")
+                       : llmName
                 on: false
                 // No prompt here: the command fills its default, so the text
                 // lives in one place instead of drifting between the two.
@@ -624,6 +702,40 @@ Item {
               color: Color.muted
             }
             Item { Layout.fillWidth: true }
+          }
+        }
+
+        // -- an entry per model ------------------------------------
+        //
+        // A step names an entry, so running two local models means two
+        // entries. Downloaded weights nothing points at can become one here,
+        // which is the only thing standing between this and a mode picking
+        // its own LLM.
+        ColumnLayout {
+          Layout.fillWidth: true
+          spacing: Style.space(6)
+          visible: root.llmSpare.length > 0
+          Text {
+            text: root.t("modes.newllm")
+            font.family: Style.font.family
+            font.pixelSize: Style.font.caption
+            color: Color.muted
+          }
+          Flow {
+            Layout.fillWidth: true
+            spacing: Style.space(6)
+            Repeater {
+              model: root.llmSpare
+              OmChip {
+                readonly property var entry: modelData
+                readonly property string shortName: String(entry.key)
+                                                    .replace("llm:", "").split("-")[0]
+                label: "+ " + shortName + " · " + String(entry.key).replace("llm:", "")
+                on: false
+                onClicked: root.commandArgs(
+                  ["omavoi", "llm", "add", shortName, entry.key])
+              }
+            }
           }
         }
 

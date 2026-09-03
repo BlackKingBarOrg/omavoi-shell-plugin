@@ -92,6 +92,10 @@ PACK = {
 
  "modes.wontfit": '空き %1 が必要',
  "modes.blocked": '切り替えていません —— このモードのモデルは今の VRAM に収まりません',
+ "modes.speechmodel": '重み',
+ "modes.speechglobal": '読み込まれているもの',
+ "modes.speechonly1": 'このエンジン用にダウンロード済みの重みは一組だけです。残りは「モデル」タブにあります —— 正確さより速さが要るモードには小さいものを用意しておく価値があります。',
+ "modes.newllm": 'ダウンロード済みで、まだどこからも呼ばれていない重み',
  "modes.newname": "新しいモード名",
  "modes.here": "現在",
  "modes.fallback": "フォールバック",

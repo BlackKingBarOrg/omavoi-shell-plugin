@@ -244,6 +244,18 @@ section("modes", {
  "modes.blocked":    ("not switched — this mode's model will not fit in VRAM right now",
                       "未切换 —— 这个模式的模型现在装不进显存",
                       "ไม่ได้สลับ — โมเดลของโหมดนี้ใส่ใน VRAM ตอนนี้ไม่พอ"),
+ "modes.speechmodel": ("weights", "权重", "น้ำหนัก"),
+ "modes.speechglobal": ("whatever is loaded", "沿用已加载的", "ใช้ตัวที่โหลดอยู่"),
+ "modes.speechonly1": ("Only one set of weights is downloaded for this engine. The Models "
+                       "tab has the rest — a smaller one is worth having for modes where "
+                       "speed matters more than accuracy.",
+                       "这个引擎目前只下载了一套权重。其余的在「模型」页 —— "
+                       "对速度比准确率更重要的模式,值得备一个小的。",
+                       "เอนจินนี้ดาวน์โหลดน้ำหนักไว้ชุดเดียว ที่เหลืออยู่ในแท็บโมเดล — "
+                       "ตัวเล็กกว่าคุ้มที่จะมีไว้สำหรับโหมดที่เน้นความเร็วมากกว่าความแม่น"),
+ "modes.newllm":      ("DOWNLOADED WEIGHTS NOTHING NAMES YET",
+                       "已下载但还没有条目引用的权重",
+                       "น้ำหนักที่ดาวน์โหลดแล้วแต่ยังไม่มีรายการใดเรียกใช้"),
  "modes.newname":    ("new mode name", "新模式名称", "ชื่อโหมดใหม่"),
  "modes.here":       ("here", "当前", "ที่นี่"),
  "modes.fallback":   ("fallback", "兜底", "สำรอง"),

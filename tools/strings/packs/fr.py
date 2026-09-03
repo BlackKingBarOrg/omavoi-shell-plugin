@@ -92,6 +92,10 @@ PACK = {
 
  "modes.wontfit": 'demande %1 de libre',
  "modes.blocked": 'non basculé — le modèle de ce mode ne tient pas dans la VRAM actuellement',
+ "modes.speechmodel": 'poids',
+ "modes.speechglobal": 'ce qui est chargé',
+ "modes.speechonly1": "Un seul jeu de poids est téléchargé pour ce moteur. Les autres sont dans l'onglet Modèles — un plus petit vaut la peine pour les modes où la vitesse compte plus que la précision.",
+ "modes.newllm": 'POIDS TÉLÉCHARGÉS QUE RIEN NE NOMME ENCORE',
  "modes.newname": "nom du nouveau mode",
  "modes.here": "ici",
  "modes.fallback": "par défaut",
