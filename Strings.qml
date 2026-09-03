@@ -109,13 +109,19 @@ Item {
       "up.step.daemon": "the daemon",
       "up.step.restart": "restart",
 
+      // ---- shared-and-setup
+      "models.shared": "Shared memory · ",
+      "models.sharednote": "This GPU has no memory of its own — the weights are ordinary system pages, and the bar above is the whole machine. Keeping both resident is still the point, but overcommit here costs swap rather than an eviction: dictation stalls instead of merely slowing down, and everything else on the machine stalls with it.",
+      "nav.setup": "Setup",
+      "setup.rootblurb": "The steps above that need root can be done here, in one password prompt — polkit treats pacman as auth_admin, so asking in two calls means being asked twice. The daemon is restarted afterwards: it remembers a missing engine for the life of the process, so installing the binary alone would leave it still saying the engine is not there.",
+      "setup.rootrun": "Install these",
+
       // ---- nav
       "nav.history": "History",
       "nav.modes": "Modes",
       "nav.models": "Models",
       "nav.dictionary": "Dictionary",
       "nav.settings": "Settings",
-      "nav.setup": "Setup",
       "lang.label": "Language",
 
       // ---- state
@@ -132,10 +138,6 @@ Item {
       "setup.optional": "optional",
       "setup.copy": "Copy",
       "setup.run": "Run",
-      // Root steps are run here now, not copied out to a terminal: the
-      // first-run and update screens already install behind one button.
-      "setup.rootrun": "Install these",
-      "setup.rootblurb": "The steps above that need root can be done here, in one password prompt — polkit treats pacman as auth_admin, so asking in two calls means being asked twice. The daemon is restarted afterwards: it remembers a missing engine for the life of the process, so installing the binary alone would leave it still saying the engine is not there.",
       "setup.recheck": "Re-check",
       "setup.hint": "or run  omavoi setup  in a terminal — same steps, same order",
 
@@ -249,17 +251,12 @@ Item {
       "models.unused": "not named by any mode — costs nothing until one does",
       "models.endpointnote": "Endpoints live under [llm.<name>] — omavoi config edit. A key never goes in the config: set its environment variable, or put it in secrets.toml.",
       "models.vram": "VRAM · ",
-      // An integrated GPU owns no memory of its own: the weights sit in
-      // system RAM, so naming the bar VRAM would name a pool that is not
-      // there. The daemon sends `unified` and the view picks this instead.
-      "models.shared": "Shared memory · ",
       "models.seg.speech": "speech model",
       "models.seg.other": "other programs",
       "models.seg.free": "free",
       "models.vramsub": "in use across the whole machine",
       "models.needs": "needs",
       "models.vramnote": "Keeping both resident is the point: a chain that loads weights per take costs seconds, not milliseconds. Overcommit and the speech model is what gets evicted — dictation goes ten times slower with nothing to say why.",
-      "models.sharednote": "This GPU has no memory of its own — the weights are ordinary system pages, and the bar above is the whole machine. Keeping both resident is still the point, but overcommit here costs swap rather than an eviction: dictation stalls instead of merely slowing down, and everything else on the machine stalls with it.",
 
       // ---- dictionary
       "dict.rules": "rules",
@@ -357,13 +354,19 @@ Item {
       "up.step.daemon": "守护进程",
       "up.step.restart": "重启服务",
 
+      // ---- shared-and-setup
+      "models.shared": "共享内存 · ",
+      "models.sharednote": "这块 GPU 没有独立显存 —— 权重就是普通的系统内存页，上面那条是全机内存。让两个模型都常驻依然是关键，但在这里超配的代价是 swap，不是被换出：听写会直接卡住，而不只是变慢，整台机器也会跟着卡。",
+      "nav.setup": "安装",
+      "setup.rootblurb": "上面需要 root 的步骤可以在这里一次做完，只弹一次密码框 —— polkit 把 pacman 当作 auth_admin，分两次调用就会问两次密码。装完会重启守护进程：它对「引擎未安装」的判断在进程存活期间是缓存的，只装二进制的话它仍会说引擎不在。",
+      "setup.rootrun": "一次装好",
+
       // ---- nav
       "nav.history": "历史",
       "nav.modes": "模式",
       "nav.models": "模型",
       "nav.dictionary": "词典",
       "nav.settings": "设置",
-      "nav.setup": "安装",
       "lang.label": "语言",
 
       // ---- state
@@ -380,8 +383,6 @@ Item {
       "setup.optional": "可选",
       "setup.copy": "复制",
       "setup.run": "运行",
-      "setup.rootrun": "一次装好",
-      "setup.rootblurb": "上面需要 root 的步骤可以在这里一次做完，只弹一次密码框 —— polkit 把 pacman 当作 auth_admin，分两次调用就会问两次密码。装完会重启守护进程：它对「引擎未安装」的判断在进程存活期间是缓存的，只装二进制的话它仍会说引擎不在。",
       "setup.recheck": "重新检查",
       "setup.hint": "或者在终端里运行  omavoi setup  —— 步骤和顺序完全一样",
 
@@ -495,14 +496,12 @@ Item {
       "models.unused": "没有任何模式引用它 —— 在被引用前不占任何资源",
       "models.endpointnote": "接入点写在 [llm.<name>] 下 —— omavoi config edit。密钥绝不写进配置文件：设成环境变量，或者放进 secrets.toml。",
       "models.vram": "显存 · ",
-      "models.shared": "共享内存 · ",
       "models.seg.speech": "语音模型",
       "models.seg.other": "其他程序",
       "models.seg.free": "空闲",
       "models.vramsub": "全机范围的占用",
       "models.needs": "需要",
       "models.vramnote": "让两个模型都常驻是关键：每次录音都重新加载权重要花几秒，而不是几毫秒。一旦超配，被换出去的就是语音模型 —— 听写会慢十倍，而且不会有任何提示告诉你为什么。",
-      "models.sharednote": "这块 GPU 没有独立显存 —— 权重就是普通的系统内存页，上面那条是全机内存。让两个模型都常驻依然是关键，但在这里超配的代价是 swap，不是被换出：听写会直接卡住，而不只是变慢，整台机器也会跟着卡。",
 
       // ---- dictionary
       "dict.rules": "规则",
@@ -600,13 +599,19 @@ Item {
       "up.step.daemon": "เดมอน",
       "up.step.restart": "รีสตาร์ต",
 
+      // ---- shared-and-setup
+      "models.shared": "หน่วยความจำร่วม · ",
+      "models.sharednote": "GPU ตัวนี้ไม่มีหน่วยความจำของตัวเอง — น้ำหนักอยู่ในหน่วยความจำระบบธรรมดา และแถบด้านบนคือทั้งเครื่อง การให้ทั้งสองตัวค้างไว้ยังคงเป็นหัวใจ แต่การจัดเกินโควตาที่นี่ต้องจ่ายด้วย swap ไม่ใช่การถูกไล่ออก: การพิมพ์ด้วยเสียงจะค้างไปเลย ไม่ใช่แค่ช้าลง และทั้งเครื่องจะค้างตามไปด้วย",
+      "nav.setup": "ตั้งค่า",
+      "setup.rootblurb": "ขั้นตอนด้านบนที่ต้องใช้ root ทำได้จากที่นี่ในการถามรหัสผ่านครั้งเดียว — polkit ถือว่า pacman เป็น auth_admin ถ้าเรียกสองครั้งก็จะถูกถามสองครั้ง หลังจากนั้นจะรีสตาร์ตเดมอน เพราะมันจำว่าเอนจินไม่มีอยู่ไปตลอดอายุโปรเซส การติดตั้งไบนารีอย่างเดียวจึงยังทำให้มันบอกว่าไม่มีเอนจิน",
+      "setup.rootrun": "ติดตั้งทั้งหมดนี้",
+
       // ---- nav
       "nav.history": "ประวัติ",
       "nav.modes": "โหมด",
       "nav.models": "โมเดล",
       "nav.dictionary": "พจนานุกรม",
       "nav.settings": "ตั้งค่า",
-      "nav.setup": "ตั้งค่า",
       "lang.label": "ภาษา",
 
       // ---- state
@@ -623,8 +628,6 @@ Item {
       "setup.optional": "ไม่บังคับ",
       "setup.copy": "คัดลอก",
       "setup.run": "รัน",
-      "setup.rootrun": "ติดตั้งทั้งหมดนี้",
-      "setup.rootblurb": "ขั้นตอนด้านบนที่ต้องใช้ root ทำได้จากที่นี่ในการถามรหัสผ่านครั้งเดียว — polkit ถือว่า pacman เป็น auth_admin ถ้าเรียกสองครั้งก็จะถูกถามสองครั้ง หลังจากนั้นจะรีสตาร์ตเดมอน เพราะมันจำว่าเอนจินไม่มีอยู่ไปตลอดอายุโปรเซส การติดตั้งไบนารีอย่างเดียวจึงยังทำให้มันบอกว่าไม่มีเอนจิน",
       "setup.recheck": "ตรวจอีกครั้ง",
       "setup.hint": "หรือรัน  omavoi setup  ในเทอร์มินัล — ขั้นตอนและลำดับเดียวกัน",
 
@@ -738,14 +741,12 @@ Item {
       "models.unused": "ยังไม่มีโหมดใดเรียกใช้ — ไม่กินทรัพยากรจนกว่าจะมี",
       "models.endpointnote": "ปลายทางอยู่ใต้ [llm.<name>] — omavoi config edit คีย์ไม่เคยอยู่ในไฟล์ตั้งค่า: ตั้งเป็นตัวแปรสภาพแวดล้อม หรือใส่ใน secrets.toml",
       "models.vram": "VRAM · ",
-      "models.shared": "หน่วยความจำร่วม · ",
       "models.seg.speech": "โมเดลเสียงพูด",
       "models.seg.other": "โปรแกรมอื่น",
       "models.seg.free": "ว่าง",
       "models.vramsub": "ที่ใช้อยู่ทั้งเครื่อง",
       "models.needs": "ต้องใช้",
       "models.vramnote": "การให้ทั้งสองตัวค้างในหน่วยความจำคือหัวใจ: สายที่โหลดน้ำหนักใหม่ทุกครั้งเสียเวลาเป็นวินาที ไม่ใช่มิลลิวินาที ถ้าจัดเกินโควตา ตัวที่ถูกไล่ออกคือโมเดลเสียงพูด — การพิมพ์ด้วยเสียงจะช้าลงสิบเท่าโดยไม่มีอะไรบอกสาเหตุ",
-      "models.sharednote": "GPU ตัวนี้ไม่มีหน่วยความจำของตัวเอง — น้ำหนักอยู่ในหน่วยความจำระบบธรรมดา และแถบด้านบนคือทั้งเครื่อง การให้ทั้งสองตัวค้างไว้ยังคงเป็นหัวใจ แต่การจัดเกินโควตาที่นี่ต้องจ่ายด้วย swap ไม่ใช่การถูกไล่ออก: การพิมพ์ด้วยเสียงจะค้างไปเลย ไม่ใช่แค่ช้าลง และทั้งเครื่องจะค้างตามไปด้วย",
 
       // ---- dictionary
       "dict.rules": "กฎ",
@@ -843,13 +844,19 @@ Item {
       "up.step.daemon": "der Dienst",
       "up.step.restart": "neu starten",
 
+      // ---- shared-and-setup
+      "models.shared": "Gemeinsamer Speicher · ",
+      "models.sharednote": "Diese GPU hat keinen eigenen Speicher — die Gewichte sind gewöhnliche Systemseiten, und der Balken oben ist der ganze Rechner. Beide dauerhaft im Speicher zu halten bleibt der Punkt, aber Überbuchung kostet hier Swap statt einer Verdrängung: das Diktat bleibt stehen, statt nur langsamer zu werden, und alles andere auf dem Rechner bleibt mit stehen.",
+      "nav.setup": "Einrichtung",
+      "setup.rootblurb": "Die Schritte oben, die root brauchen, lassen sich hier erledigen, in einer einzigen Passwortabfrage — polkit behandelt pacman als auth_admin, zwei Aufrufe heißen also zweimal gefragt werden. Danach wird der Daemon neu gestartet: er merkt sich eine fehlende Engine für die Lebensdauer des Prozesses, das Binary allein zu installieren würde ihn weiterhin sagen lassen, sie fehle.",
+      "setup.rootrun": "Diese installieren",
+
       // ---- nav
       "nav.history": "Verlauf",
       "nav.modes": "Modi",
       "nav.models": "Modelle",
       "nav.dictionary": "Wörterbuch",
       "nav.settings": "Einstellungen",
-      "nav.setup": "Einrichtung",
       "lang.label": "Sprache",
 
       // ---- state
@@ -866,8 +873,6 @@ Item {
       "setup.optional": "optional",
       "setup.copy": "Kopieren",
       "setup.run": "Ausführen",
-      "setup.rootrun": "Diese installieren",
-      "setup.rootblurb": "Die Schritte oben, die root brauchen, lassen sich hier erledigen, in einer einzigen Passwortabfrage — polkit behandelt pacman als auth_admin, zwei Aufrufe heißen also zweimal gefragt werden. Danach wird der Daemon neu gestartet: er merkt sich eine fehlende Engine für die Lebensdauer des Prozesses, das Binary allein zu installieren würde ihn weiterhin sagen lassen, sie fehle.",
       "setup.recheck": "Neu prüfen",
       "setup.hint": "oder  omavoi setup  im Terminal ausführen — gleiche Schritte, gleiche Reihenfolge",
 
@@ -981,14 +986,12 @@ Item {
       "models.unused": "von keinem Modus genannt — kostet nichts, bis einer es tut",
       "models.endpointnote": "Endpunkte stehen unter [llm.<name>] — omavoi config edit. Ein Key kommt nie in die Konfiguration: setze seine Umgebungsvariable oder lege ihn in secrets.toml.",
       "models.vram": "VRAM · ",
-      "models.shared": "Gemeinsamer Speicher · ",
       "models.seg.speech": "Sprachmodell",
       "models.seg.other": "andere Programme",
       "models.seg.free": "frei",
       "models.vramsub": "im gesamten Rechner belegt",
       "models.needs": "braucht",
       "models.vramnote": "Beide dauerhaft im Speicher zu halten ist der Punkt: eine Kette, die Gewichte pro Aufnahme lädt, kostet Sekunden statt Millisekunden. Bei Überbuchung wird das Sprachmodell verdrängt — das Diktat wird zehnmal langsamer, ohne dass etwas sagt warum.",
-      "models.sharednote": "Diese GPU hat keinen eigenen Speicher — die Gewichte sind gewöhnliche Systemseiten, und der Balken oben ist der ganze Rechner. Beide dauerhaft im Speicher zu halten bleibt der Punkt, aber Überbuchung kostet hier Swap statt einer Verdrängung: das Diktat bleibt stehen, statt nur langsamer zu werden, und alles andere auf dem Rechner bleibt mit stehen.",
 
       // ---- dictionary
       "dict.rules": "Regeln",
@@ -1086,13 +1089,19 @@ Item {
       "up.step.daemon": "le démon",
       "up.step.restart": "redémarrer",
 
+      // ---- shared-and-setup
+      "models.shared": "Mémoire partagée · ",
+      "models.sharednote": "Ce GPU n'a pas de mémoire propre — les poids sont des pages système ordinaires, et la barre ci-dessus représente toute la machine. Garder les deux en mémoire reste tout l'intérêt, mais ici le surengagement coûte du swap plutôt qu'une éviction : la dictée se bloque au lieu de seulement ralentir, et tout le reste de la machine se bloque avec elle.",
+      "nav.setup": "Installation",
+      "setup.rootblurb": "Les étapes ci-dessus qui demandent root peuvent être faites ici, en une seule demande de mot de passe — polkit traite pacman comme auth_admin, donc deux appels signifient deux demandes. Le démon est ensuite redémarré : il retient l'absence d'un moteur pour toute la durée du processus, installer le binaire seul le laisserait continuer à dire qu'il manque.",
+      "setup.rootrun": "Tout installer",
+
       // ---- nav
       "nav.history": "Historique",
       "nav.modes": "Modes",
       "nav.models": "Modèles",
       "nav.dictionary": "Dictionnaire",
       "nav.settings": "Réglages",
-      "nav.setup": "Installation",
       "lang.label": "Langue",
 
       // ---- state
@@ -1109,8 +1118,6 @@ Item {
       "setup.optional": "facultatif",
       "setup.copy": "Copier",
       "setup.run": "Exécuter",
-      "setup.rootrun": "Tout installer",
-      "setup.rootblurb": "Les étapes ci-dessus qui demandent root peuvent être faites ici, en une seule demande de mot de passe — polkit traite pacman comme auth_admin, donc deux appels signifient deux demandes. Le démon est ensuite redémarré : il retient l'absence d'un moteur pour toute la durée du processus, installer le binaire seul le laisserait continuer à dire qu'il manque.",
       "setup.recheck": "Revérifier",
       "setup.hint": "ou lance  omavoi setup  dans un terminal — mêmes étapes, même ordre",
 
@@ -1224,14 +1231,12 @@ Item {
       "models.unused": "nommé par aucun mode — ne coûte rien tant que ce n'est pas le cas",
       "models.endpointnote": "Les points d'accès vivent sous [llm.<name>] — omavoi config edit. Une clé ne va jamais dans la configuration : définis sa variable d'environnement, ou mets-la dans secrets.toml.",
       "models.vram": "VRAM · ",
-      "models.shared": "Mémoire partagée · ",
       "models.seg.speech": "modèle de parole",
       "models.seg.other": "autres programmes",
       "models.seg.free": "libre",
       "models.vramsub": "utilisée sur toute la machine",
       "models.needs": "requiert",
       "models.vramnote": "Garder les deux en mémoire est tout l'intérêt : une chaîne qui charge les poids à chaque prise coûte des secondes, pas des millisecondes. En surengagement, c'est le modèle de parole qui est évincé — la dictée devient dix fois plus lente sans que rien n'en dise la raison.",
-      "models.sharednote": "Ce GPU n'a pas de mémoire propre — les poids sont des pages système ordinaires, et la barre ci-dessus représente toute la machine. Garder les deux en mémoire reste tout l'intérêt, mais ici le surengagement coûte du swap plutôt qu'une éviction : la dictée se bloque au lieu de seulement ralentir, et tout le reste de la machine se bloque avec elle.",
 
       // ---- dictionary
       "dict.rules": "règles",
@@ -1329,13 +1334,19 @@ Item {
       "up.step.daemon": "el demonio",
       "up.step.restart": "reiniciar",
 
+      // ---- shared-and-setup
+      "models.shared": "Memoria compartida · ",
+      "models.sharednote": "Esta GPU no tiene memoria propia — los pesos son páginas del sistema como cualquier otra, y la barra de arriba es toda la máquina. Mantener los dos residentes sigue siendo el punto, pero aquí pasarse cuesta swap en lugar de un desalojo: el dictado se queda colgado en vez de solo ir más lento, y todo lo demás en la máquina se cuelga con él.",
+      "nav.setup": "Instalación",
+      "setup.rootblurb": "Los pasos de arriba que necesitan root se pueden hacer aquí, con una sola petición de contraseña — polkit trata pacman como auth_admin, así que en dos llamadas te la pide dos veces. Después se reinicia el demonio: recuerda que falta un motor durante toda la vida del proceso, así que instalar solo el binario lo dejaría diciendo que sigue faltando.",
+      "setup.rootrun": "Instalar esto",
+
       // ---- nav
       "nav.history": "Historial",
       "nav.modes": "Modos",
       "nav.models": "Modelos",
       "nav.dictionary": "Diccionario",
       "nav.settings": "Ajustes",
-      "nav.setup": "Instalación",
       "lang.label": "Idioma",
 
       // ---- state
@@ -1352,8 +1363,6 @@ Item {
       "setup.optional": "opcional",
       "setup.copy": "Copiar",
       "setup.run": "Ejecutar",
-      "setup.rootrun": "Instalar esto",
-      "setup.rootblurb": "Los pasos de arriba que necesitan root se pueden hacer aquí, con una sola petición de contraseña — polkit trata pacman como auth_admin, así que en dos llamadas te la pide dos veces. Después se reinicia el demonio: recuerda que falta un motor durante toda la vida del proceso, así que instalar solo el binario lo dejaría diciendo que sigue faltando.",
       "setup.recheck": "Volver a comprobar",
       "setup.hint": "o ejecuta  omavoi setup  en una terminal — los mismos pasos, el mismo orden",
 
@@ -1467,14 +1476,12 @@ Item {
       "models.unused": "ningún modo lo nombra — no cuesta nada hasta que alguno lo haga",
       "models.endpointnote": "Los endpoints viven bajo [llm.<name>] — omavoi config edit. Una clave nunca va en la configuración: define su variable de entorno, o ponla en secrets.toml.",
       "models.vram": "VRAM · ",
-      "models.shared": "Memoria compartida · ",
       "models.seg.speech": "modelo de voz",
       "models.seg.other": "otros programas",
       "models.seg.free": "libre",
       "models.vramsub": "en uso en toda la máquina",
       "models.needs": "necesita",
       "models.vramnote": "Mantener los dos residentes es justamente el punto: una cadena que carga pesos en cada toma cuesta segundos, no milisegundos. Si te pasas, lo que se desaloja es el modelo de voz — el dictado va diez veces más lento sin que nada diga por qué.",
-      "models.sharednote": "Esta GPU no tiene memoria propia — los pesos son páginas del sistema como cualquier otra, y la barra de arriba es toda la máquina. Mantener los dos residentes sigue siendo el punto, pero aquí pasarse cuesta swap en lugar de un desalojo: el dictado se queda colgado en vez de solo ir más lento, y todo lo demás en la máquina se cuelga con él.",
 
       // ---- dictionary
       "dict.rules": "reglas",
@@ -1572,13 +1579,19 @@ Item {
       "up.step.daemon": "デーモン",
       "up.step.restart": "再起動",
 
+      // ---- shared-and-setup
+      "models.shared": "共有メモリ · ",
+      "models.sharednote": "この GPU に専用メモリはありません —— 重みは通常のシステムメモリ上にあり、上のバーは端末全体を表しています。両方を常駐させることが肝心なのは変わりませんが、ここで詰め込みすぎた代償は追い出しではなく swap です。入力は遅くなるのではなく止まり、端末の他のすべても一緒に止まります。",
+      "nav.setup": "セットアップ",
+      "setup.rootblurb": "上の root が必要な手順は、ここでパスワード入力一回で済ませられます —— polkit は pacman を auth_admin として扱うため、二回に分けて呼べば二回聞かれます。その後デーモンを再起動します。エンジンが無いという判断はプロセスが生きている間キャッシュされるので、バイナリを入れるだけでは無いと言い続けます。",
+      "setup.rootrun": "まとめて入れる",
+
       // ---- nav
       "nav.history": "履歴",
       "nav.modes": "モード",
       "nav.models": "モデル",
       "nav.dictionary": "辞書",
       "nav.settings": "設定",
-      "nav.setup": "セットアップ",
       "lang.label": "言語",
 
       // ---- state
@@ -1595,8 +1608,6 @@ Item {
       "setup.optional": "任意",
       "setup.copy": "コピー",
       "setup.run": "実行",
-      "setup.rootrun": "まとめて入れる",
-      "setup.rootblurb": "上の root が必要な手順は、ここでパスワード入力一回で済ませられます —— polkit は pacman を auth_admin として扱うため、二回に分けて呼べば二回聞かれます。その後デーモンを再起動します。エンジンが無いという判断はプロセスが生きている間キャッシュされるので、バイナリを入れるだけでは無いと言い続けます。",
       "setup.recheck": "再確認",
       "setup.hint": "またはターミナルで  omavoi setup  を実行 —— 手順も順序も同じです",
 
@@ -1710,14 +1721,12 @@ Item {
       "models.unused": "どのモードからも呼ばれていません —— 呼ばれるまで負荷はゼロです",
       "models.endpointnote": "エンドポイントは [llm.<name>] の下にあります —— omavoi config edit。キーは決して設定ファイルに書きません。環境変数に設定するか、secrets.toml に置いてください。",
       "models.vram": "VRAM · ",
-      "models.shared": "共有メモリ · ",
       "models.seg.speech": "音声モデル",
       "models.seg.other": "他のプログラム",
       "models.seg.free": "空き",
       "models.vramsub": "端末全体での使用量",
       "models.needs": "必要",
       "models.vramnote": "両方を常駐させることが肝心です。録音ごとに重みを読み込む構成ではミリ秒ではなく秒単位のコストがかかります。詰め込みすぎると追い出されるのは音声モデルの側で —— 理由を告げるものが何もないまま、入力が十倍遅くなります。",
-      "models.sharednote": "この GPU に専用メモリはありません —— 重みは通常のシステムメモリ上にあり、上のバーは端末全体を表しています。両方を常駐させることが肝心なのは変わりませんが、ここで詰め込みすぎた代償は追い出しではなく swap です。入力は遅くなるのではなく止まり、端末の他のすべても一緒に止まります。",
 
       // ---- dictionary
       "dict.rules": "ルール",
@@ -1815,13 +1824,19 @@ Item {
       "up.step.daemon": "dịch vụ",
       "up.step.restart": "khởi động lại",
 
+      // ---- shared-and-setup
+      "models.shared": "Bộ nhớ dùng chung · ",
+      "models.sharednote": "GPU này không có bộ nhớ riêng — trọng số nằm trong bộ nhớ hệ thống thông thường, và thanh phía trên là toàn bộ máy. Giữ cả hai thường trú vẫn là điểm chính, nhưng vượt quá ở đây phải trả bằng swap chứ không phải bị đẩy ra: việc nhập bằng giọng sẽ treo hẳn thay vì chỉ chậm đi, và mọi thứ khác trên máy treo theo.",
+      "nav.setup": "Cài đặt",
+      "setup.rootblurb": "Các bước ở trên cần root có thể làm ngay tại đây, chỉ hỏi mật khẩu một lần — polkit xem pacman là auth_admin, gọi hai lần thì bị hỏi hai lần. Sau đó daemon được khởi động lại: nó ghi nhớ việc thiếu engine trong suốt vòng đời tiến trình, nên chỉ cài binary thôi thì nó vẫn báo là thiếu.",
+      "setup.rootrun": "Cài các mục này",
+
       // ---- nav
       "nav.history": "Lịch sử",
       "nav.modes": "Chế độ",
       "nav.models": "Mô hình",
       "nav.dictionary": "Từ điển",
       "nav.settings": "Cài đặt",
-      "nav.setup": "Cài đặt",
       "lang.label": "Ngôn ngữ",
 
       // ---- state
@@ -1838,8 +1853,6 @@ Item {
       "setup.optional": "không bắt buộc",
       "setup.copy": "Sao chép",
       "setup.run": "Chạy",
-      "setup.rootrun": "Cài các mục này",
-      "setup.rootblurb": "Các bước ở trên cần root có thể làm ngay tại đây, chỉ hỏi mật khẩu một lần — polkit xem pacman là auth_admin, gọi hai lần thì bị hỏi hai lần. Sau đó daemon được khởi động lại: nó ghi nhớ việc thiếu engine trong suốt vòng đời tiến trình, nên chỉ cài binary thôi thì nó vẫn báo là thiếu.",
       "setup.recheck": "Kiểm tra lại",
       "setup.hint": "hoặc chạy  omavoi setup  trong terminal — cùng các bước, cùng thứ tự",
 
@@ -1953,14 +1966,12 @@ Item {
       "models.unused": "chưa chế độ nào gọi tên — chưa tốn gì cho đến khi có",
       "models.endpointnote": "Các endpoint nằm dưới [llm.<name>] — omavoi config edit. Khóa không bao giờ nằm trong file cấu hình: hãy đặt biến môi trường của nó, hoặc để trong secrets.toml.",
       "models.vram": "VRAM · ",
-      "models.shared": "Bộ nhớ dùng chung · ",
       "models.seg.speech": "mô hình giọng nói",
       "models.seg.other": "chương trình khác",
       "models.seg.free": "còn trống",
       "models.vramsub": "đang dùng trên toàn máy",
       "models.needs": "cần",
       "models.vramnote": "Giữ cả hai thường trú mới là điểm chính: một chuỗi phải nạp trọng số mỗi lần ghi sẽ tốn hàng giây, không phải hàng mili giây. Nếu vượt quá dung lượng, thứ bị đẩy ra là mô hình giọng nói — việc nhập bằng giọng chậm đi mười lần mà không có gì nói cho bạn biết vì sao.",
-      "models.sharednote": "GPU này không có bộ nhớ riêng — trọng số nằm trong bộ nhớ hệ thống thông thường, và thanh phía trên là toàn bộ máy. Giữ cả hai thường trú vẫn là điểm chính, nhưng vượt quá ở đây phải trả bằng swap chứ không phải bị đẩy ra: việc nhập bằng giọng sẽ treo hẳn thay vì chỉ chậm đi, và mọi thứ khác trên máy treo theo.",
 
       // ---- dictionary
       "dict.rules": "quy tắc",
