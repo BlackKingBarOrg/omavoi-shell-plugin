@@ -31,6 +31,20 @@ Item {
   readonly property var llmModels: (payload.models || []).filter(function (m) {
     return m.kind === "llm"
   })
+  // The entries a downloadable LLM can be pointed at. Removing "Use" from
+  // these rows was right in one way — a mode names an entry, not a model —
+  // and wrong in another: you could download gemma and have no way to make
+  // anything use it.
+  readonly property var localLlms: (payload.llm || []).filter(function (l) {
+    return l.backend === "llama-local" || l.backend === "llama.cpp"
+  })
+  function entriesUsing(key) {
+    var out = []
+    for (var i = 0; i < root.localLlms.length; i++)
+      if (String(root.localLlms[i].model) === String(key))
+        out.push(root.localLlms[i].name)
+    return out
+  }
   // What the daemon has actually loaded. The config only says what was asked
   // for, and the two differ from the moment of an edit until a restart.
   readonly property var engines: payload.engines || ({})
@@ -584,10 +598,14 @@ Item {
 
             Text {
               Layout.preferredWidth: Style.space(12)
-              text: m.running ? "▶" : (m.downloaded ? "○" : "")
+              // ▶ loaded now, ● an entry points at it, ○ merely on disk.
+              text: m.running ? "▶"
+                    : (root.entriesUsing(m.key).length > 0 ? "●"
+                       : (m.downloaded ? "○" : ""))
               font.family: Style.font.family
               font.pixelSize: Style.font.caption
-              color: m.running ? Color.accent : Color.muted
+              color: m.running || root.entriesUsing(m.key).length > 0
+                     ? Color.accent : Color.muted
             }
             Text {
               Layout.preferredWidth: Style.space(150)
@@ -641,6 +659,20 @@ Item {
                 font.pixelSize: Style.font.caption
                 color: Color.accent
               }
+              Repeater {
+                // Downloaded and not already the choice: offer to make it so.
+                model: m.downloaded ? root.localLlms : []
+                OmChip {
+                  readonly property var entry: modelData
+                  visible: String(entry.model) !== String(m.key)
+                  label: root.localLlms.length > 1
+                         ? root.t("models.use") + " " + entry.name
+                         : root.t("models.use")
+                  on: false
+                  onClicked: root.command("omavoi config set llm."
+                                          + entry.name + ".model " + m.key)
+                }
+              }
               Button {
                 visible: !m.downloaded && root.pulling[m.key] !== true
                 text: root.t("models.download")
@@ -648,6 +680,7 @@ Item {
               }
               Button {
                 visible: m.downloaded && m.ours && m.running !== true
+                         && root.entriesUsing(m.key).length === 0
                 text: root.t("models.remove")
                 onClicked: root.command("omavoi model rm " + m.key)
               }
