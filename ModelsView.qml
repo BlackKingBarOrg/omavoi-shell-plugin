@@ -65,6 +65,9 @@ Item {
                                               Color.foreground.b, 0.28)
 
   readonly property var vramSegments: (payload.vram && payload.vram.segments) || []
+  // An integrated GPU has no pool of its own -- the daemon reports system RAM
+  // and says so, and the two readings need different words for the same bar.
+  readonly property bool unifiedMem: ((payload.vram || {}).unified === true)
   function segColor(kind) {
     if (kind === "speech") return root.speechColor
     if (kind === "llm") return root.llmColor
@@ -696,7 +699,8 @@ Item {
           spacing: Style.space(5)
 
           Text {
-            text: root.t("models.vram") + ((root.payload.vram || {}).name || "")
+            text: root.t(root.unifiedMem ? "models.shared" : "models.vram")
+                  + ((root.payload.vram || {}).name || "")
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
             font.letterSpacing: 1
@@ -802,7 +806,7 @@ Item {
           Text {
             Layout.fillWidth: true
             wrapMode: Text.Wrap
-            text: root.t("models.vramnote")
+            text: root.t(root.unifiedMem ? "models.sharednote" : "models.vramnote")
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
             color: Qt.darker(Color.muted, 1.1)
