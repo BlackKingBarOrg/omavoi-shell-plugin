@@ -27,15 +27,18 @@ Item {
     return m.kind === "speech" && m.downloaded
            && (root.ggml ? m.fmt === "ggml" : m.fmt === "ct2")
   })
-  // Local LLM weights that no entry points at yet: each one can become an
-  // entry, which is the unit a step names.
-  readonly property var llmSpare: (catalogue.models || []).filter(function (m) {
-    if (m.kind !== "llm" || !m.downloaded) return false
-    var taken = (catalogue.llm || [])
-    for (var i = 0; i < taken.length; i++)
-      if (String(taken[i].model) === String(m.key)) return false
-    return true
-  })
+  function llmLabel(name) {
+    var kind = name === "agent" ? root.t("models.k.agent")
+             : name === "api" ? root.t("models.k.api")
+             : name === "local" ? root.t("models.k.local")
+             : name
+    var m = root.llmModelOf(name)
+    // The model only where it is a choice: the local weights, or an endpoint
+    // whose model the user set. An agent uses its own default.
+    if (m !== "" && name !== "agent")
+      return kind + "  " + m.replace("llm:", "")
+    return kind
+  }
   function llmModelOf(name) {
     var l = catalogue.llm || []
     for (var i = 0; i < l.length; i++)
@@ -624,12 +627,7 @@ Item {
                     model: root.llms
                     OmChip {
                       readonly property string llmName: modelData
-                      // The model, not just the name: two entries differ only
-                      // by which weights they run, and that is the whole point
-                      // of having two.
-                      label: root.llmModelOf(llmName) !== ""
-                             ? llmName + " · " + root.llmModelOf(llmName).replace("llm:", "")
-                             : llmName
+                      label: root.llmLabel(llmName)
                       on: llmName === step.llm
                       onClicked: if (!on) root.commandArgs(
                         ["omavoi", "mode", "step", root.current, "llm",
@@ -682,11 +680,7 @@ Item {
               model: root.llms
               OmChip {
                 readonly property string llmName: modelData
-                // With the model, for the same reason as the row above: two
-                // entries are only worth having if you can tell them apart.
-                label: root.llmModelOf(llmName) !== ""
-                       ? llmName + " · " + root.llmModelOf(llmName).replace("llm:", "")
-                       : llmName
+                label: root.llmLabel(llmName)
                 on: false
                 // No prompt here: the command fills its default, so the text
                 // lives in one place instead of drifting between the two.
@@ -702,40 +696,6 @@ Item {
               color: Color.muted
             }
             Item { Layout.fillWidth: true }
-          }
-        }
-
-        // -- an entry per model ------------------------------------
-        //
-        // A step names an entry, so running two local models means two
-        // entries. Downloaded weights nothing points at can become one here,
-        // which is the only thing standing between this and a mode picking
-        // its own LLM.
-        ColumnLayout {
-          Layout.fillWidth: true
-          spacing: Style.space(6)
-          visible: root.llmSpare.length > 0
-          Text {
-            text: root.t("modes.newllm")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            color: Color.muted
-          }
-          Flow {
-            Layout.fillWidth: true
-            spacing: Style.space(6)
-            Repeater {
-              model: root.llmSpare
-              OmChip {
-                readonly property var entry: modelData
-                readonly property string shortName: String(entry.key)
-                                                    .replace("llm:", "").split("-")[0]
-                label: "+ " + shortName + " · " + String(entry.key).replace("llm:", "")
-                on: false
-                onClicked: root.commandArgs(
-                  ["omavoi", "llm", "add", shortName, entry.key])
-              }
-            }
           }
         }
 

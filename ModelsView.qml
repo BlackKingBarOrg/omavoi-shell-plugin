@@ -1,5 +1,7 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell.Io
 import qs.Commons
 import qs.Ui
 
@@ -79,6 +81,63 @@ Item {
     return root.t("models.seg.other")
   }
 
+  // The fields are a detour, not the page: three rows say what is configured,
+  // and only the one you are changing needs to be open.
+  property bool editingApi: false
+  property string keyNote: ""
+  property string checkNote: ""
+  property bool checkOk: false
+  property var checkModels: []
+
+  Process {
+    id: keyWriter
+    command: ["omavoi", "secrets", "set", "openai"]
+    stdinEnabled: true
+    property string pending: ""
+    function send(value) {
+      keyWriter.pending = value
+      root.keyNote = ""
+      keyWriter.running = true
+    }
+    onStarted: {
+      // Written once the pipe exists, then closed so the reader sees EOF.
+      keyWriter.write(keyWriter.pending)
+      keyWriter.pending = ""
+      keyWriter.stdinEnabled = false
+    }
+    onExited: function (code, status) {
+      root.keyNote = code === 0 ? root.t("models.f.key.saved")
+                                : root.t("models.f.key.failed")
+      keyField.text = ""
+      root.command("omavoi config show --json")
+    }
+  }
+
+  Process {
+    id: checker
+    command: ["omavoi", "llm", "check", "api", "--json"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var r = ({})
+        try { r = JSON.parse(text) } catch (e) { r = ({ ok: false, error: text }) }
+        root.checkOk = r.ok === true
+        root.checkModels = r.ok === true ? (r.models || []) : []
+        root.checkNote = r.ok === true
+          ? root.tf("models.f.testok", String((r.models || []).length))
+          : String(r.error || "")
+      }
+    }
+  }
+
+  // The configured entry behind one of the three kinds, or null when the
+  // config has none — an older config may predate them.
+  function entryNamed(key) {
+    var l = payload.llm || []
+    for (var i = 0; i < l.length; i++)
+      if (String(l[i].name) === String(key)) return l[i]
+    return null
+  }
+
   // "127.0.0.1:43593" reads better in a strip than the whole URL.
   function hostport(url) {
     var u = String(url || "")
@@ -86,401 +145,147 @@ Item {
     return u.replace(/^[a-z]+:\/\//, "")
   }
 
-  RowLayout {
+  ColumnLayout {
     anchors.fill: parent
     spacing: 0
 
-    // ================= SPEECH =================
-    Flickable {
+    RowLayout {
+      Layout.fillWidth: true
       Layout.fillHeight: true
-      Layout.preferredWidth: Math.round(root.width * 0.58)
-      clip: true
-      contentHeight: speech.implicitHeight + root.pad * 2
+      spacing: 0
 
-      ColumnLayout {
-        id: speech
-        x: root.pad
-        y: root.pad
-        width: parent.width - root.pad * 2
-        spacing: Style.space(9)
+      // ================= SPEECH =================
+      Flickable {
+        Layout.fillHeight: true
+        Layout.preferredWidth: Math.round(root.width * 0.58)
+        clip: true
+        contentHeight: speech.implicitHeight + root.pad * 2
 
-        RowLayout {
+        ColumnLayout {
+          id: speech
+          x: root.pad
+          y: root.pad
+          width: parent.width - root.pad * 2
           spacing: Style.space(9)
-          Text {
-            text: root.t("models.speech")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.subtitle
-            font.letterSpacing: 2
-            color: Color.foreground
-          }
-          Text {
-            text: root.t("models.speechsub")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            color: Color.muted
-          }
-        }
 
-        // -- what is loaded right now --
-        //
-        // The whole page below this is the config: which engine is selected,
-        // which weights are on disk. None of it answers "and what is running",
-        // which is the question you have while dictation is behaving oddly.
-        RowLayout {
-          Layout.fillWidth: true
-          spacing: Style.space(8)
-          Text {
-            text: root.t("models.now")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            font.letterSpacing: 1
-            color: Color.muted
-          }
-          Text {
-            visible: !root.daemonUp
-            Layout.fillWidth: true
-            text: root.t("models.nodaemon")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            color: Color.urgent
-          }
-          Text {
-            visible: root.daemonUp
-            text: root.speechLive
-                  ? (root.speechNow.engine + "  " + root.speechNow.model
-                     + "  [" + root.speechNow.device + "]")
-                  : root.t("models.notloaded")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.body
-            color: root.speechLive ? Color.foreground : Color.urgent
-          }
-          Text {
-            visible: root.daemonUp && root.speechLive && root.speechNow.url
-            Layout.fillWidth: true
-            elide: Text.ElideRight
-            text: root.hostport(root.speechNow.url)
-                  + (root.speechNow.pid ? "  pid " + root.speechNow.pid : "")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            color: Qt.darker(Color.muted, 1.1)
-          }
-          Item { Layout.fillWidth: true }
-        }
-
-        // -- engines, single choice --
-        Repeater {
-          model: [
-            { id: "local-whispercpp", name: root.t("models.e.vulkan"),
-              detail: root.t("models.e.vulkan.sub"),
-              note: root.t("models.e.vulkan.note") },
-            { id: "local-whisper", name: root.t("models.e.cuda"),
-              detail: root.t("models.e.cuda.sub"),
-              note: root.t("models.e.cuda.note") },
-            { id: "api", name: root.t("models.e.api"),
-              detail: root.t("models.e.api.sub"),
-              note: root.t("models.e.api.note") }
-          ]
-          Rectangle {
-            readonly property var eng: modelData
-            readonly property bool on: root.payload.backend === eng.id
-            Layout.fillWidth: true
-            implicitHeight: engRow.implicitHeight + Style.space(16)
-            color: on ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.08) : "transparent"
-            border.width: 1
-            border.color: on ? Color.accent
-                             : Qt.rgba(Color.foreground.r, Color.foreground.g,
-                                       Color.foreground.b, 0.2)
-            radius: Style.cornerRadius
-
-            RowLayout {
-              id: engRow
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.verticalCenter: parent.verticalCenter
-              anchors.leftMargin: Style.space(11)
-              anchors.rightMargin: Style.space(11)
-              spacing: Style.space(10)
-
-              Rectangle {
-                Layout.alignment: Qt.AlignVCenter
-                width: Style.space(9); height: width
-                radius: width / 2
-                color: on ? Color.accent : "transparent"
-                border.width: 1
-                border.color: on ? Color.accent : Color.muted
-              }
-              Text {
-                // The dot to the left is the selection; this says whether the
-                // selection is what is actually up.
-                visible: root.daemonUp && root.speechLive
-                         && String(root.speechNow.backend || "") === eng.id
-                text: "▶"
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.accent
-              }
-              Text {
-                Layout.preferredWidth: Style.space(112)
-                text: eng.name
-                font.family: Style.font.family
-                font.pixelSize: Style.font.body
-                color: Color.foreground
-              }
-              Text {
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-                text: eng.detail
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.muted
-              }
-              Text {
-                text: eng.note
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: eng.id === "api" ? Color.urgent : Color.muted
-              }
-            }
-            MouseArea {
-              anchors.fill: parent
-              cursorShape: Qt.PointingHandCursor
-              onClicked: if (!on) root.command("omavoi config set speech.backend " + eng.id)
-            }
-          }
-        }
-
-        // -- the daemon has not caught up --
-        Rectangle {
-          Layout.fillWidth: true
-          Layout.topMargin: Style.space(4)
-          visible: root.stale
-          implicitHeight: staleRow.implicitHeight + Style.space(16)
-          color: Qt.rgba(Color.urgent.r, Color.urgent.g, Color.urgent.b, 0.09)
-          border.width: 1
-          border.color: Color.urgent
-          radius: Style.cornerRadius
           RowLayout {
-            id: staleRow
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.margins: Style.space(11)
-            spacing: Style.space(10)
-            ColumnLayout {
-              Layout.fillWidth: true
-              spacing: 1
-              Text {
-                text: root.t("models.stale")
-                font.family: Style.font.family
-                font.pixelSize: Style.font.body
-                color: Color.foreground
-              }
-              Text {
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-                text: root.t("models.loaded") + root.speechNow.model + "   ·   "
-                    + root.t("models.configured") + root.payload.active
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.muted
-              }
-            }
-            Button {
-              text: root.t("models.restart")
-              onClicked: root.command("systemctl --user restart omavoid")
-            }
-          }
-        }
-
-        // -- models --
-        RowLayout {
-          Layout.topMargin: Style.space(8)
-          Layout.fillWidth: true
-          Text {
-            text: root.t("models.list") + (root.ggml ? "ggml" : "ct2")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            font.letterSpacing: 1
-            color: Color.muted
-          }
-          Item { Layout.fillWidth: true }
-          Text {
-            text: root.t("models.formathint")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            color: Color.muted
-          }
-        }
-
-        Repeater {
-          model: root.speechModels
-          RowLayout {
-            readonly property var m: modelData
-            Layout.fillWidth: true
-            spacing: Style.space(10)
-
+            spacing: Style.space(9)
             Text {
-              Layout.preferredWidth: Style.space(12)
-              // ▶ is loaded right now, ● is selected but not loaded, ○ is
-              // merely on disk. The first two coincide most of the time; when
-              // they do not, that is the thing worth seeing.
-              text: m.running ? "▶" : (m.active ? "●" : (m.downloaded ? "○" : ""))
+              text: root.t("models.speech")
               font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              color: m.running ? Color.accent
-                               : (m.active ? Color.urgent : Color.muted)
-            }
-            Text {
-              Layout.preferredWidth: Style.space(178)
-              text: m.key
-              font.family: Style.font.family
-              font.pixelSize: Style.font.body
+              font.pixelSize: Style.font.subtitle
+              font.letterSpacing: 2
               color: Color.foreground
             }
             Text {
-              Layout.preferredWidth: Style.space(46)
-              horizontalAlignment: Text.AlignRight
-              text: (m.size_mb / 1024).toFixed(1) + "G"
+              text: root.t("models.speechsub")
               font.family: Style.font.family
               font.pixelSize: Style.font.caption
               color: Color.muted
             }
+          }
+
+          // -- what is loaded right now --
+          //
+          // The whole page below this is the config: which engine is selected,
+          // which weights are on disk. None of it answers "and what is running",
+          // which is the question you have while dictation is behaving oddly.
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Style.space(8)
             Text {
-              Layout.fillWidth: true
-              elide: Text.ElideRight
-              text: m.note
+              text: root.t("models.now")
               font.family: Style.font.family
               font.pixelSize: Style.font.caption
-              color: m.tags.indexOf("recommended") >= 0 ? Color.foreground : Color.muted
+              font.letterSpacing: 1
+              color: Color.muted
             }
-            RowLayout {
-              Layout.preferredWidth: Style.space(180)
-              spacing: Style.space(7)
-              Item { Layout.fillWidth: true }
-              Text {
-                visible: m.running === true
-                text: root.t("models.running")
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.accent
-              }
-              Text {
-                visible: m.downloaded && !m.ours && m.running !== true
-                text: root.t("models.ondisk")
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.muted
-              }
-              Text {
-                visible: !m.downloaded && root.pulling[m.key] === true
-                text: root.t("models.downloading")
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.accent
-              }
-              Button {
-                visible: !m.downloaded && root.pulling[m.key] !== true
-                text: root.t("models.download")
-                onClicked: root.command("omavoi model pull " + m.key)
-              }
-              Button {
-                visible: m.downloaded && !m.active
-                text: root.t("models.use")
-                onClicked: root.command("omavoi model use " + m.key)
-              }
-              Button {
-                visible: m.downloaded && m.ours && !m.active
-                text: root.t("models.remove")
-                onClicked: root.command("omavoi model rm " + m.key)
-              }
+            Text {
+              visible: !root.daemonUp
+              Layout.fillWidth: true
+              text: root.t("models.nodaemon")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Color.urgent
             }
+            Text {
+              visible: root.daemonUp
+              text: root.speechLive
+                    ? (root.speechNow.engine + "  " + root.speechNow.model
+                       + "  [" + root.speechNow.device + "]")
+                    : root.t("models.notloaded")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.body
+              color: root.speechLive ? Color.foreground : Color.urgent
+            }
+            Text {
+              visible: root.daemonUp && root.speechLive && root.speechNow.url
+              Layout.fillWidth: true
+              elide: Text.ElideRight
+              text: root.hostport(root.speechNow.url)
+                    + (root.speechNow.pid ? "  pid " + root.speechNow.pid : "")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Qt.darker(Color.muted, 1.1)
+            }
+            Item { Layout.fillWidth: true }
           }
-        }
 
-        Text {
-          Layout.topMargin: Style.space(6)
-          Layout.fillWidth: true
-          wrapMode: Text.Wrap
-          text: root.tf("models.outside", root.payload.root || root.t("models.ourstore"))
-          font.family: Style.font.family
-          font.pixelSize: Style.font.caption
-          color: Qt.darker(Color.muted, 1.1)
-        }
-      }
-    }
-
-    Rectangle {
-      Layout.fillHeight: true
-      Layout.preferredWidth: 1
-      color: Qt.rgba(Color.foreground.r, Color.foreground.g, Color.foreground.b, 0.18)
-    }
-
-    // ================= LLM =================
-    Flickable {
-      Layout.fillHeight: true
-      Layout.fillWidth: true
-      clip: true
-      contentHeight: llm.implicitHeight + root.pad * 2
-
-      ColumnLayout {
-        id: llm
-        x: root.pad
-        y: root.pad
-        width: parent.width - root.pad * 2
-        spacing: Style.space(9)
-
-        RowLayout {
-          spacing: Style.space(9)
-          Text {
-            text: root.t("models.llm")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.subtitle
-            font.letterSpacing: 2
-            color: Color.foreground
-          }
-          Text {
-            text: root.t("models.llmsub")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            color: Color.muted
-          }
-        }
-
-        Repeater {
-          model: root.payload.llm || []
-          Rectangle {
-            readonly property var l: modelData
-            readonly property bool inUse: (l.used_by || []).length > 0
-            Layout.fillWidth: true
-            implicitHeight: llmBody.implicitHeight + Style.space(18)
-            color: inUse ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.06)
-                         : "transparent"
-            border.width: 1
-            border.color: inUse ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.7)
-                                : Qt.rgba(Color.foreground.r, Color.foreground.g,
-                                          Color.foreground.b, 0.2)
-            radius: Style.cornerRadius
-
-            ColumnLayout {
-              id: llmBody
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.top: parent.top
-              anchors.margins: Style.space(11)
-              spacing: Style.space(4)
+          // -- engines, single choice --
+          Repeater {
+            model: [
+              { id: "local-whispercpp", name: root.t("models.e.vulkan"),
+                detail: root.t("models.e.vulkan.sub"),
+                note: root.t("models.e.vulkan.note") },
+              { id: "local-whisper", name: root.t("models.e.cuda"),
+                detail: root.t("models.e.cuda.sub"),
+                note: root.t("models.e.cuda.note") },
+              { id: "api", name: root.t("models.e.api"),
+                detail: root.t("models.e.api.sub"),
+                note: root.t("models.e.api.note") }
+            ]
+            Rectangle {
+              readonly property var eng: modelData
+              readonly property bool on: root.payload.backend === eng.id
+              Layout.fillWidth: true
+              implicitHeight: engRow.implicitHeight + Style.space(16)
+              color: on ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.08) : "transparent"
+              border.width: 1
+              border.color: on ? Color.accent
+                               : Qt.rgba(Color.foreground.r, Color.foreground.g,
+                                         Color.foreground.b, 0.2)
+              radius: Style.cornerRadius
 
               RowLayout {
-                Layout.fillWidth: true
-                spacing: Style.space(8)
+                id: engRow
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.leftMargin: Style.space(11)
+                anchors.rightMargin: Style.space(11)
+                spacing: Style.space(10)
+
+                Rectangle {
+                  Layout.alignment: Qt.AlignVCenter
+                  width: Style.space(9); height: width
+                  radius: width / 2
+                  color: on ? Color.accent : "transparent"
+                  border.width: 1
+                  border.color: on ? Color.accent : Color.muted
+                }
                 Text {
-                  visible: root.daemonUp && l.live_running === true && !l.remote
+                  // The dot to the left is the selection; this says whether the
+                  // selection is what is actually up.
+                  visible: root.daemonUp && root.speechLive
+                           && String(root.speechNow.backend || "") === eng.id
                   text: "▶"
                   font.family: Style.font.family
                   font.pixelSize: Style.font.caption
                   color: Color.accent
                 }
                 Text {
-                  text: l.name
+                  Layout.preferredWidth: Style.space(112)
+                  text: eng.name
                   font.family: Style.font.family
                   font.pixelSize: Style.font.body
                   color: Color.foreground
@@ -488,329 +293,765 @@ Item {
                 Text {
                   Layout.fillWidth: true
                   elide: Text.ElideRight
-                  text: l.model
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Color.muted
-                }
-                // Whether using it sends your words off the machine is the
-                // one fact worth a badge.
-                Text {
-                  text: l.remote ? root.t("models.remote") : root.t("models.local")
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: l.remote ? Color.urgent : Color.accent
-                }
-                // Cold is the resting state for a managed server — it starts
-                // on the first take that names it — so this is not a warning.
-                Text {
-                  visible: root.daemonUp
-                  text: l.live_running
-                        ? (l.remote ? root.t("models.ready") : root.t("models.running"))
-                        : (l.remote ? "" : root.t("models.cold"))
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: l.live_running ? Color.accent : Qt.darker(Color.muted, 1.1)
-                }
-              }
-
-              RowLayout {
-                Layout.fillWidth: true
-                spacing: Style.space(8)
-                Text {
-                  Layout.fillWidth: true
-                  elide: Text.ElideRight
-                  text: {
-                    var bits = [l.backend]
-                    if (l.base_url) bits.push(l.base_url)
-                    if (l.key_env) bits.push(l.key_env + " " + l.key)
-                    return bits.join("  ·  ")
-                  }
+                  text: eng.detail
                   font.family: Style.font.family
                   font.pixelSize: Style.font.caption
                   color: Color.muted
                 }
                 Text {
-                  visible: l.live_running === true && l.live_url && !l.remote
-                  text: root.hostport(l.live_url)
+                  text: eng.note
                   font.family: Style.font.family
                   font.pixelSize: Style.font.caption
-                  color: Qt.darker(Color.muted, 1.1)
-                }
-                Text {
-                  visible: l.key_env && !l.has_key
-                  text: root.t("models.nokey")
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Color.urgent
+                  color: eng.id === "api" ? Color.urgent : Color.muted
                 }
               }
-
-              Text {
-                Layout.fillWidth: true
-                text: (l.used_by || []).length
-                      ? root.t("models.usedby") + (l.used_by || []).join(", ")
-                      : root.t("models.unused")
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: (l.used_by || []).length ? Color.accent : Qt.darker(Color.muted, 1.1)
+              MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: if (!on) root.command("omavoi config set speech.backend " + eng.id)
               }
             }
           }
-        }
 
-        Text {
-          Layout.fillWidth: true
-          wrapMode: Text.Wrap
-          text: root.t("models.endpointnote")
-          font.family: Style.font.family
-          font.pixelSize: Style.font.caption
-          color: Qt.darker(Color.muted, 1.1)
-        }
-
-        // -- the LLM catalogue --
-        //
-        // These live under LLM, not in the speech table above: they are both
-        // gguf, but "use this one" means a mode's step names it, never a
-        // global switch, so there is deliberately no Use button here.
-        RowLayout {
-          Layout.topMargin: Style.space(10)
-          Layout.fillWidth: true
-          Text {
-            text: root.t("models.list") + "gguf"
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            font.letterSpacing: 1
-            color: Color.muted
-          }
-          Item { Layout.fillWidth: true }
-          Text {
-            text: root.t("models.llmcathint")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            color: Color.muted
-          }
-        }
-
-        Repeater {
-          model: root.llmModels
-          RowLayout {
-            readonly property var m: modelData
-            Layout.fillWidth: true
-            spacing: Style.space(10)
-
-            Text {
-              Layout.preferredWidth: Style.space(12)
-              // ▶ loaded now, ● an entry points at it, ○ merely on disk.
-              text: m.running ? "▶"
-                    : (root.entriesUsing(m.key).length > 0 ? "●"
-                       : (m.downloaded ? "○" : ""))
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              color: m.running || root.entriesUsing(m.key).length > 0
-                     ? Color.accent : Color.muted
-            }
-            Text {
-              Layout.preferredWidth: Style.space(150)
-              text: m.key
-              font.family: Style.font.family
-              font.pixelSize: Style.font.body
-              color: Color.foreground
-            }
-            Text {
-              Layout.preferredWidth: Style.space(46)
-              horizontalAlignment: Text.AlignRight
-              text: (m.size_mb / 1024).toFixed(1) + "G"
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              color: Color.muted
-            }
-            // Won't-fit is worth saying before the download, not after — and
-            // never about the model that is loaded right now, whose own
-            // weights are most of what the free-VRAM figure is missing.
-            Text {
-              visible: m.fits === false && m.running !== true
-              text: root.t("models.needs") + " "
-                    + (m.needed_mb / 1024).toFixed(1) + "G"
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              color: Color.urgent
-            }
-            Text {
-              Layout.fillWidth: true
-              elide: Text.ElideRight
-              text: m.note
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              color: Color.muted
-            }
-            RowLayout {
-              Layout.preferredWidth: Style.space(130)
-              spacing: Style.space(7)
-              Item { Layout.fillWidth: true }
-              Text {
-                visible: m.running === true
-                text: root.t("models.running")
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.accent
-              }
-              Text {
-                visible: !m.downloaded && root.pulling[m.key] === true
-                text: root.t("models.downloading")
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.accent
-              }
-              Repeater {
-                // Downloaded and not already the choice: offer to make it so.
-                model: m.downloaded ? root.localLlms : []
-                OmChip {
-                  readonly property var entry: modelData
-                  visible: String(entry.model) !== String(m.key)
-                  label: root.localLlms.length > 1
-                         ? root.t("models.use") + " " + entry.name
-                         : root.t("models.use")
-                  on: false
-                  onClicked: root.command("omavoi config set llm."
-                                          + entry.name + ".model " + m.key)
-                }
-              }
-              Button {
-                visible: !m.downloaded && root.pulling[m.key] !== true
-                text: root.t("models.download")
-                onClicked: root.command("omavoi model pull " + m.key)
-              }
-              Button {
-                visible: m.downloaded && m.ours && m.running !== true
-                         && root.entriesUsing(m.key).length === 0
-                text: root.t("models.remove")
-                onClicked: root.command("omavoi model rm " + m.key)
-              }
-            }
-          }
-        }
-
-        // -- VRAM --
-        ColumnLayout {
-          Layout.fillWidth: true
-          Layout.topMargin: Style.space(12)
-          visible: (root.payload.vram || {}).total_mb !== undefined
-          spacing: Style.space(5)
-
-          Text {
-            text: root.t(root.unifiedMem ? "models.shared" : "models.vram")
-                  + ((root.payload.vram || {}).name || "")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            font.letterSpacing: 1
-            color: Color.muted
-          }
+          // -- the daemon has not caught up --
           Rectangle {
-            id: vramTrack
             Layout.fillWidth: true
-            implicitHeight: Style.space(14)
-            color: Qt.rgba(Color.foreground.r, Color.foreground.g, Color.foreground.b, 0.12)
-
-            readonly property int totalMb: ((root.payload.vram || {}).total_mb || 0)
-
-            // Stacked left to right in the order the segments arrive, so the
-            // two families keep the same place every time you look.
-            Row {
-              anchors.fill: parent
-              spacing: 0
-              Repeater {
-                model: root.vramSegments
-                Rectangle {
-                  readonly property var seg: modelData
-                  visible: seg.used_mb > 0
-                  width: vramTrack.totalMb > 0
-                         ? vramTrack.width * Math.max(0, Math.min(1,
-                             seg.used_mb / vramTrack.totalMb))
-                         : 0
-                  height: vramTrack.height
-                  color: root.segColor(seg.kind)
-                  opacity: seg.kind === "other" ? 1.0 : 0.8
-                }
-              }
-            }
-
-            // Fallback for a daemon too old to send segments: the single fill
-            // this replaced, rather than an empty track.
-            Rectangle {
-              visible: root.vramSegments.length === 0
-              width: vramTrack.totalMb > 0
-                     ? vramTrack.width * Math.max(0, Math.min(1,
-                         ((root.payload.vram || {}).used_mb || 0) / vramTrack.totalMb))
-                     : 0
-              height: parent.height
-              color: Color.accent
-              opacity: 0.65
-            }
-          }
-
-          // -- legend --
-          //
-          // A two-colour bar with no key is a puzzle, and which colour is
-          // which is exactly the thing being asked.
-          Flow {
-            Layout.fillWidth: true
-            spacing: Style.space(14)
-            visible: root.vramSegments.length > 0
-            Repeater {
-              model: root.vramSegments
-              Row {
-                readonly property var seg: modelData
-                visible: seg.used_mb > 0
-                spacing: Style.space(5)
-                Rectangle {
-                  anchors.verticalCenter: parent.verticalCenter
-                  width: Style.space(9); height: Style.space(9)
-                  radius: Style.space(2)
-                  color: root.segColor(seg.kind)
-                  opacity: seg.kind === "other" ? 1.0 : 0.8
-                }
+            Layout.topMargin: Style.space(4)
+            visible: root.stale
+            implicitHeight: staleRow.implicitHeight + Style.space(16)
+            color: Qt.rgba(Color.urgent.r, Color.urgent.g, Color.urgent.b, 0.09)
+            border.width: 1
+            border.color: Color.urgent
+            radius: Style.cornerRadius
+            RowLayout {
+              id: staleRow
+              anchors.left: parent.left
+              anchors.right: parent.right
+              anchors.verticalCenter: parent.verticalCenter
+              anchors.margins: Style.space(11)
+              spacing: Style.space(10)
+              ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
                 Text {
-                  text: root.segLabel(seg.kind) + "  "
-                        + (seg.used_mb / 1024).toFixed(1) + " GB"
+                  text: root.t("models.stale")
                   font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
+                  font.pixelSize: Style.font.body
                   color: Color.foreground
                 }
                 Text {
-                  text: seg.label
+                  Layout.fillWidth: true
+                  elide: Text.ElideRight
+                  text: root.t("models.loaded") + root.speechNow.model + "   ·   "
+                      + root.t("models.configured") + root.payload.active
                   font.family: Style.font.family
                   font.pixelSize: Style.font.caption
-                  color: Qt.darker(Color.muted, 1.1)
+                  color: Color.muted
                 }
+              }
+              Button {
+                text: root.t("models.restart")
+                onClicked: root.command("systemctl --user restart omavoid")
               }
             }
           }
+
+          // -- models --
           RowLayout {
+            Layout.topMargin: Style.space(8)
             Layout.fillWidth: true
             Text {
-              text: root.t("models.vramsub")
+              text: root.t("models.list") + (root.ggml ? "ggml" : "ct2")
               font.family: Style.font.family
               font.pixelSize: Style.font.caption
+              font.letterSpacing: 1
               color: Color.muted
             }
             Item { Layout.fillWidth: true }
             Text {
-              text: (((root.payload.vram || {}).used_mb || 0) / 1024).toFixed(1) + " / "
-                    + (((root.payload.vram || {}).total_mb || 0) / 1024).toFixed(1) + " GB"
+              text: root.t("models.formathint")
               font.family: Style.font.family
-              font.pixelSize: Style.font.body
-              color: Color.foreground
+              font.pixelSize: Style.font.caption
+              color: Color.muted
             }
           }
+
+          Repeater {
+            model: root.speechModels
+            RowLayout {
+              readonly property var m: modelData
+              Layout.fillWidth: true
+              spacing: Style.space(10)
+
+              Text {
+                Layout.preferredWidth: Style.space(12)
+                // ▶ is loaded right now, ● is selected but not loaded, ○ is
+                // merely on disk. The first two coincide most of the time; when
+                // they do not, that is the thing worth seeing.
+                text: m.running ? "▶" : (m.active ? "●" : (m.downloaded ? "○" : ""))
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: m.running ? Color.accent
+                                 : (m.active ? Color.urgent : Color.muted)
+              }
+              Text {
+                Layout.preferredWidth: Style.space(178)
+                text: m.key
+                font.family: Style.font.family
+                font.pixelSize: Style.font.body
+                color: Color.foreground
+              }
+              Text {
+                Layout.preferredWidth: Style.space(46)
+                horizontalAlignment: Text.AlignRight
+                text: (m.size_mb / 1024).toFixed(1) + "G"
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Color.muted
+              }
+              Text {
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+                text: m.note
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: m.tags.indexOf("recommended") >= 0 ? Color.foreground : Color.muted
+              }
+              RowLayout {
+                Layout.preferredWidth: Style.space(180)
+                spacing: Style.space(7)
+                Item { Layout.fillWidth: true }
+                Text {
+                  visible: m.running === true
+                  text: root.t("models.running")
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.caption
+                  color: Color.accent
+                }
+                Text {
+                  visible: m.downloaded && !m.ours && m.running !== true
+                  text: root.t("models.ondisk")
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.caption
+                  color: Color.muted
+                }
+                Text {
+                  visible: !m.downloaded && root.pulling[m.key] === true
+                  text: root.t("models.downloading")
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.caption
+                  color: Color.accent
+                }
+                Button {
+                  visible: !m.downloaded && root.pulling[m.key] !== true
+                  text: root.t("models.download")
+                  onClicked: root.command("omavoi model pull " + m.key)
+                }
+                Button {
+                  visible: m.downloaded && !m.active
+                  text: root.t("models.use")
+                  onClicked: root.command("omavoi model use " + m.key)
+                }
+                Button {
+                  visible: m.downloaded && m.ours && !m.active
+                  text: root.t("models.remove")
+                  onClicked: root.command("omavoi model rm " + m.key)
+                }
+              }
+            }
+          }
+
           Text {
+            Layout.topMargin: Style.space(6)
             Layout.fillWidth: true
             wrapMode: Text.Wrap
-            text: root.t(root.unifiedMem ? "models.sharednote" : "models.vramnote")
+            text: root.tf("models.outside", root.payload.root || root.t("models.ourstore"))
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
             color: Qt.darker(Color.muted, 1.1)
           }
+        }
+      }
+
+      Rectangle {
+        Layout.fillHeight: true
+        Layout.preferredWidth: 1
+        color: Qt.rgba(Color.foreground.r, Color.foreground.g, Color.foreground.b, 0.18)
+      }
+
+      // ================= LLM =================
+      Flickable {
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        clip: true
+        contentHeight: llm.implicitHeight + root.pad * 2
+
+        ColumnLayout {
+          id: llm
+          x: root.pad
+          y: root.pad
+          width: parent.width - root.pad * 2
+          spacing: Style.space(9)
+
+          RowLayout {
+            spacing: Style.space(9)
+            Text {
+              text: root.t("models.llm")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.subtitle
+              font.letterSpacing: 2
+              color: Color.foreground
+            }
+            Text {
+              text: root.t("models.llmsub")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Color.muted
+            }
+          }
+
+          // Three kinds, one row each, in the same shape as the speech engines
+        // above — an LLM step is one of these, and nothing else. It was an
+        // open-ended list of named entries, which put an implementation detail
+        // on screen as a configuration surface and read as a mess with four of
+        // them. Which weights the local one runs is a per-step choice now, so
+        // one row still serves modes that want different models.
+        Repeater {
+          model: [
+            { key: "agent", name: root.t("models.k.agent"),
+              detail: root.t("models.k.agent.sub") },
+            { key: "local", name: root.t("models.k.local"),
+              detail: root.t("models.k.local.sub") },
+            { key: "api", name: root.t("models.k.api"),
+              detail: root.t("models.k.api.sub") }
+          ]
+          Rectangle {
+            readonly property var kind: modelData
+            readonly property var l: root.entryNamed(kind.key)
+            readonly property bool inUse: l && (l.used_by || []).length > 0
+            Layout.fillWidth: true
+            implicitHeight: kindRow.implicitHeight + Style.space(16)
+            color: inUse ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.06)
+                         : "transparent"
+            border.width: 1
+            border.color: inUse ? Qt.rgba(Color.accent.r, Color.accent.g,
+                                          Color.accent.b, 0.55)
+                                : Qt.rgba(Color.foreground.r, Color.foreground.g,
+                                          Color.foreground.b, 0.18)
+            radius: Style.cornerRadius
+
+            RowLayout {
+              id: kindRow
+              anchors.left: parent.left
+              anchors.right: parent.right
+              anchors.verticalCenter: parent.verticalCenter
+              anchors.leftMargin: Style.space(11)
+              anchors.rightMargin: Style.space(11)
+              spacing: Style.space(10)
+
+              Text {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: Style.space(12)
+                text: (l && l.live_running === true) ? "▶" : ""
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Color.accent
+              }
+              ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
+                RowLayout {
+                  Layout.fillWidth: true
+                  spacing: Style.space(8)
+                  Text {
+                    text: kind.name
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.body
+                    color: Color.foreground
+                  }
+                  Text {
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
+                    // What it is actually set to, which differs per kind: the
+                    // agent's name, the weights, the endpoint's model.
+                    text: l ? String(l.live_engine || l.backend || "")
+                              + (l.model ? "  " + String(l.model).replace("llm:", "") : "")
+                            : ""
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.caption
+                    color: Color.muted
+                  }
+                }
+                Text {
+                  Layout.fillWidth: true
+                  wrapMode: Text.Wrap
+                  text: kind.detail
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.caption
+                  color: Qt.darker(Color.muted, 1.15)
+                }
+              }
+              Text {
+                Layout.preferredWidth: Style.space(84)
+                horizontalAlignment: Text.AlignRight
+                elide: Text.ElideRight
+                text: !l ? root.t("models.k.unset")
+                      : l.live_problem ? root.t("models.nokey")
+                      : l.live_running === true ? root.t("models.running")
+                      : (l.remote ? root.t("models.ready") : root.t("models.coldshort"))
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: !l ? Qt.darker(Color.muted, 1.2)
+                       : l.live_problem ? Color.urgent
+                       : l.live_running === true ? Color.accent
+                       : Qt.darker(Color.muted, 1.1)
+              }
+              Text {
+                Layout.preferredWidth: Style.space(96)
+                horizontalAlignment: Text.AlignRight
+                elide: Text.ElideRight
+                text: (l && (l.used_by || []).length) ? (l.used_by || []).join(", ") : "—"
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: inUse ? Color.accent : Qt.darker(Color.muted, 1.2)
+              }
+              OmChip {
+                visible: kind.key === "api"
+                label: root.editingApi ? root.t("models.f.close")
+                                       : root.t("models.f.edit")
+                on: root.editingApi
+                onClicked: root.editingApi = !root.editingApi
+              }
+            }
+          }
+        }
+
+        // ---- the three things a remote endpoint needs -----------------------
+        //
+        // A URL, a key and a model id. Everything else that used to be here —
+        // key_env, key_name, timeout, temperature — is machinery, and putting
+        // it on screen made a mechanism look like a decision. It lives in the
+        // config file for anyone who needs it.
+        ColumnLayout {
+          Layout.fillWidth: true
+          Layout.leftMargin: Style.space(22)
+          spacing: Style.space(5)
+          visible: root.editingApi && root.entryNamed("api") !== null
+
+          Repeater {
+            model: [
+              { key: "url", label: root.t("models.f.url"),
+                place: "https://api.openai.com/v1" },
+              { key: "model", label: root.t("models.f.model"), place: "gpt-4o-mini" }
+            ]
+            RowLayout {
+              readonly property var f: modelData
+              Layout.fillWidth: true
+              spacing: Style.space(9)
+              Text {
+                Layout.preferredWidth: Style.space(52)
+                text: f.label
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Color.muted
+              }
+              TextField {
+                Layout.fillWidth: true
+                Layout.maximumWidth: Style.space(320)
+                text: {
+                  var e = root.entryNamed("api")
+                  if (!e) return ""
+                  return f.key === "url" ? String(e.base_url || "")
+                                         : String(e.model || "")
+                }
+                placeholderText: f.place
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                onEditingFinished: {
+                  var e = root.entryNamed("api")
+                  var was = !e ? "" : (f.key === "url" ? String(e.base_url || "")
+                                                       : String(e.model || ""))
+                  if (text === was) return
+                  root.command("omavoi config set llm.api."
+                               + (f.key === "url" ? "base_url" : "model")
+                               + " " + JSON.stringify(text))
+                }
+              }
+            }
+          }
+
+          // The key goes over stdin, never in a command line: a value in argv
+          // is readable from /proc by every process running as this user for
+          // as long as the command lives.
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Style.space(9)
+            Text {
+              Layout.preferredWidth: Style.space(52)
+              text: root.t("models.f.key")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Color.muted
+            }
+            TextField {
+              id: keyField
+              Layout.fillWidth: true
+              Layout.maximumWidth: Style.space(320)
+              echoMode: TextInput.Password
+              placeholderText: root.t("models.f.key.place")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              onAccepted: if (text !== "") keyWriter.send(text)
+            }
+            Button {
+              enabled: keyField.text !== ""
+              text: root.t("models.f.key.save")
+              onClicked: keyWriter.send(keyField.text)
+            }
+            Text {
+              Layout.fillWidth: true
+              elide: Text.ElideRight
+              text: root.keyNote
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: root.keyNote === "" ? Color.muted : Color.accent
+            }
+          }
+
+          RowLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: Style.space(3)
+            spacing: Style.space(9)
+            Button {
+              text: root.t("models.f.test")
+              onClicked: { root.checkNote = root.t("models.f.testing"); checker.running = true }
+            }
+            Text {
+              Layout.fillWidth: true
+              wrapMode: Text.Wrap
+              text: root.checkNote
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: root.checkOk ? "#9ece6a" : Color.urgent
+            }
+          }
+
+          // Offered rather than typed: the check already returned the list,
+          // and a model id from memory is the commonest thing to get wrong.
+          Flow {
+            Layout.fillWidth: true
+            spacing: Style.space(6)
+            visible: root.checkModels.length > 0
+            Repeater {
+              model: root.checkModels
+              OmChip {
+                readonly property string mid: modelData
+                label: mid
+                on: {
+                  var e = root.entryNamed("api")
+                  return e && String(e.model) === mid
+                }
+                onClicked: root.command(
+                  "omavoi config set llm.api.model " + JSON.stringify(mid))
+              }
+            }
+          }
+        }
+
+        // The one thing worth shouting about: a remote entry with no key
+          // cannot work, and nothing else on the row says why.
+          Repeater {
+            model: (root.payload.llm || []).filter(function (l) { return !!l.live_problem })
+            Text {
+              Layout.fillWidth: true
+              wrapMode: Text.Wrap
+              text: modelData.name + ": " + modelData.live_problem
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Color.urgent
+            }
+          }
+
+          Text {
+            Layout.fillWidth: true
+            wrapMode: Text.Wrap
+            text: root.t("models.endpointnote")
+            font.family: Style.font.family
+            font.pixelSize: Style.font.caption
+            color: Qt.darker(Color.muted, 1.1)
+          }
+
+          // -- the LLM catalogue --
+          //
+          // These live under LLM, not in the speech table above: they are both
+          // gguf, but "use this one" means a mode's step names it, never a
+          // global switch, so there is deliberately no Use button here.
+          RowLayout {
+            Layout.topMargin: Style.space(10)
+            Layout.fillWidth: true
+            Text {
+              text: root.t("models.list") + "gguf"
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              font.letterSpacing: 1
+              color: Color.muted
+            }
+            Item { Layout.fillWidth: true }
+            Text {
+              text: root.t("models.llmcathint")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Color.muted
+            }
+          }
+
+          Repeater {
+            model: root.llmModels
+            RowLayout {
+              readonly property var m: modelData
+              Layout.fillWidth: true
+              spacing: Style.space(10)
+
+              Text {
+                Layout.preferredWidth: Style.space(12)
+                // ▶ loaded now, ● an entry points at it, ○ merely on disk.
+                text: m.running ? "▶"
+                      : (root.entriesUsing(m.key).length > 0 ? "●"
+                         : (m.downloaded ? "○" : ""))
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: m.running || root.entriesUsing(m.key).length > 0
+                       ? Color.accent : Color.muted
+              }
+              Text {
+                Layout.preferredWidth: Style.space(150)
+                text: m.key
+                font.family: Style.font.family
+                font.pixelSize: Style.font.body
+                color: Color.foreground
+              }
+              Text {
+                Layout.preferredWidth: Style.space(46)
+                horizontalAlignment: Text.AlignRight
+                text: (m.size_mb / 1024).toFixed(1) + "G"
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Color.muted
+              }
+              // Won't-fit is worth saying before the download, not after — and
+              // never about the model that is loaded right now, whose own
+              // weights are most of what the free-VRAM figure is missing.
+              Text {
+                visible: m.fits === false && m.running !== true
+                text: root.t("models.needs") + " "
+                      + (m.needed_mb / 1024).toFixed(1) + "G"
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Color.urgent
+              }
+              Text {
+                Layout.fillWidth: true
+                Layout.minimumWidth: Style.space(40)
+                elide: Text.ElideRight
+                text: m.note
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Color.muted
+              }
+              RowLayout {
+                Layout.preferredWidth: Style.space(240)
+                spacing: Style.space(7)
+                Item { Layout.fillWidth: true }
+                Text {
+                  visible: m.running === true
+                  text: root.t("models.running")
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.caption
+                  color: Color.accent
+                }
+                Text {
+                  visible: !m.downloaded && root.pulling[m.key] === true
+                  text: root.t("models.downloading")
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.caption
+                  color: Color.accent
+                }
+                Repeater {
+                  // Downloaded and not already the choice: offer to make it so.
+                  model: m.downloaded ? root.localLlms : []
+                  OmChip {
+                    readonly property var entry: modelData
+                    visible: String(entry.model) !== String(m.key)
+                    // The name only when there is a choice to make; with one
+                    // local entry "Use local" is a longer way to say "Use".
+                    label: root.localLlms.length > 1
+                           ? "→ " + entry.name
+                           : root.t("models.use")
+                    on: false
+                    onClicked: root.command("omavoi config set llm."
+                                            + entry.name + ".model " + m.key)
+                  }
+                }
+                Button {
+                  visible: !m.downloaded && root.pulling[m.key] !== true
+                  text: root.t("models.download")
+                  onClicked: root.command("omavoi model pull " + m.key)
+                }
+                Button {
+                  visible: m.downloaded && m.ours && m.running !== true
+                           && root.entriesUsing(m.key).length === 0
+                  text: root.t("models.remove")
+                  onClicked: root.command("omavoi model rm " + m.key)
+                }
+              }
+            }
+          }
+
+      }
+    }
+  }
+
+    Rectangle {
+      Layout.fillWidth: true
+      Layout.preferredHeight: 1
+      color: Qt.rgba(Color.foreground.r, Color.foreground.g,
+                     Color.foreground.b, 0.18)
+    }
+
+    // ---- the machine's memory, under both families -------------------
+    //
+    // It sat inside the LLM column, which said it belonged to the LLM. It
+    // is a fact about the card, and both families draw on it — the bar has
+    // a segment for each.
+    Rectangle {
+      Layout.fillWidth: true
+      implicitHeight: footerCol.implicitHeight + Style.space(26)
+      color: Qt.darker(Color.popups.background, 1.06)
+      visible: (root.payload.vram || {}).total_mb !== undefined
+
+      ColumnLayout {
+        id: footerCol
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.leftMargin: root.pad
+        anchors.rightMargin: root.pad
+        anchors.topMargin: Style.space(13)
+        Layout.fillWidth: true
+        spacing: Style.space(5)
+
+        Text {
+          text: root.t(root.unifiedMem ? "models.shared" : "models.vram")
+                + ((root.payload.vram || {}).name || "")
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+          font.letterSpacing: 1
+          color: Color.muted
+        }
+        Rectangle {
+          id: vramTrack
+          Layout.fillWidth: true
+          implicitHeight: Style.space(14)
+          color: Qt.rgba(Color.foreground.r, Color.foreground.g, Color.foreground.b, 0.12)
+
+          readonly property int totalMb: ((root.payload.vram || {}).total_mb || 0)
+
+          // Stacked left to right in the order the segments arrive, so the
+          // two families keep the same place every time you look.
+          Row {
+            anchors.fill: parent
+            spacing: 0
+            Repeater {
+              model: root.vramSegments
+              Rectangle {
+                readonly property var seg: modelData
+                visible: seg.used_mb > 0
+                width: vramTrack.totalMb > 0
+                       ? vramTrack.width * Math.max(0, Math.min(1,
+                           seg.used_mb / vramTrack.totalMb))
+                       : 0
+                height: vramTrack.height
+                color: root.segColor(seg.kind)
+                opacity: seg.kind === "other" ? 1.0 : 0.8
+              }
+            }
+          }
+
+          // Fallback for a daemon too old to send segments: the single fill
+          // this replaced, rather than an empty track.
+          Rectangle {
+            visible: root.vramSegments.length === 0
+            width: vramTrack.totalMb > 0
+                   ? vramTrack.width * Math.max(0, Math.min(1,
+                       ((root.payload.vram || {}).used_mb || 0) / vramTrack.totalMb))
+                   : 0
+            height: parent.height
+            color: Color.accent
+            opacity: 0.65
+          }
+        }
+
+        // -- legend --
+        //
+        // A two-colour bar with no key is a puzzle, and which colour is
+        // which is exactly the thing being asked.
+        Flow {
+          Layout.fillWidth: true
+          spacing: Style.space(14)
+          visible: root.vramSegments.length > 0
+          Repeater {
+            model: root.vramSegments
+            Row {
+              readonly property var seg: modelData
+              visible: seg.used_mb > 0
+              spacing: Style.space(5)
+              Rectangle {
+                anchors.verticalCenter: parent.verticalCenter
+                width: Style.space(9); height: Style.space(9)
+                radius: Style.space(2)
+                color: root.segColor(seg.kind)
+                opacity: seg.kind === "other" ? 1.0 : 0.8
+              }
+              Text {
+                text: root.segLabel(seg.kind) + "  "
+                      + (seg.used_mb / 1024).toFixed(1) + " GB"
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Color.foreground
+              }
+              Text {
+                text: seg.label
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                color: Qt.darker(Color.muted, 1.1)
+              }
+            }
+          }
+        }
+        RowLayout {
+          Layout.fillWidth: true
+          Text {
+            text: root.t("models.vramsub")
+            font.family: Style.font.family
+            font.pixelSize: Style.font.caption
+            color: Color.muted
+          }
+          Item { Layout.fillWidth: true }
+          Text {
+            text: (((root.payload.vram || {}).used_mb || 0) / 1024).toFixed(1) + " / "
+                  + (((root.payload.vram || {}).total_mb || 0) / 1024).toFixed(1) + " GB"
+            font.family: Style.font.family
+            font.pixelSize: Style.font.body
+            color: Color.foreground
+          }
+        }
+        Text {
+          Layout.fillWidth: true
+          wrapMode: Text.Wrap
+          text: root.t(root.unifiedMem ? "models.sharednote" : "models.vramnote")
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+          color: Qt.darker(Color.muted, 1.1)
         }
       }
     }

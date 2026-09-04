@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Io
 import qs.Commons
 import qs.Ui
 
@@ -14,6 +15,31 @@ Flickable {
   property var strings: null
 
   signal command(string cmd)
+
+  property bool capturing: false
+  property string captured: ""
+  property bool capturedOk: false
+
+  Process {
+    id: grabber
+    command: ["omavoi", "hotkey", "capture", "--timeout", "8", "--json"]
+    onRunningChanged: root.capturing = grabber.running
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var r = ({})
+        try { r = JSON.parse(text) } catch (e) { r = ({ ok: false, error: text }) }
+        root.capturedOk = r.ok === true
+        if (r.ok === true) {
+          root.captured = ""
+          // Written through the same command a terminal would use, so the
+          // check that refuses an unresolvable name applies here too.
+          root.command("omavoi config set hotkey.key " + r.key)
+        } else {
+          root.captured = String(r.error || "")
+        }
+      }
+    }
+  }
 
   // `strings` is null for the instant between creation and the Loader setting
   // it, so the key stands in until then rather than a blank.
@@ -61,10 +87,27 @@ Flickable {
           color: Color.muted
         }
         Text {
+          Layout.preferredWidth: Style.space(96)
           text: root.get("hotkey.key", "?")
           font.family: Style.font.family
           font.pixelSize: Style.font.body
           color: Color.foreground
+        }
+        // Pressed rather than picked from a list. Quickshell cannot read an
+        // input device, but the daemon already can and already resolves key
+        // names, so the capture happens there and the answer comes back here.
+        Button {
+          text: root.capturing ? root.t("set.key.press") : root.t("set.key.rebind")
+          enabled: !root.capturing
+          onClicked: { root.captured = ""; grabber.running = true }
+        }
+        Text {
+          Layout.fillWidth: true
+          elide: Text.ElideRight
+          text: root.captured
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+          color: root.capturedOk ? "#9ece6a" : Color.urgent
         }
       }
       RowLayout {
