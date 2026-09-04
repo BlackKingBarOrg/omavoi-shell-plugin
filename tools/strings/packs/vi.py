@@ -256,6 +256,20 @@ PACK = {
  "set.key.press": 'đang chờ — bấm ngay',
  "set.key": "phím",
  "set.behaviour": "cách hoạt động",
+ "set.key.check": 'Kiểm tra lại',
+ "set.key.ok": 'đang nghe trên %1',
+ "set.key.testing": 'đang kiểm tra…',
+ "set.key.badname": '%1 không phải là phím máy này có — hãy bấm một phím thay vì vậy',
+ "set.key.nogroup": 'Bạn không ở trong nhóm `input`, nên không mở được bàn phím nào — '
+                    'phím được đọc trực tiếp từ thiết bị, bên dưới màn hình nền',
+ "set.key.relogin": 'Bạn đã ở trong nhóm `input`, nhưng phiên này bắt đầu trước đó — '
+                    'hãy đăng xuất rồi đăng nhập lại',
+ "set.key.nodevice": 'Không bàn phím nào ở đây báo %1 — hãy bấm một phím khác',
+ "set.key.stopped": 'Dịch vụ nền không chạy, nên không có gì đang nghe',
+ "set.key.stale": 'Dịch vụ vẫn đang nghe trên %1 — nó chưa nhận thay đổi này',
+ "set.key.off": 'Phím tắt đang bị tắt',
+ "set.key.fix.restart": 'Khởi động lại',
+ "set.key.fix.group": 'Thêm tôi vào `input`',
  "set.hotkeynote": "Đọc trực tiếp từ evdev, nằm dưới xkb, nên phím vẫn ở đúng vị trí vật lý "
                    "của nó dù bố cục bàn phím có gán lại. Không thể gán một phím modifier "
                    "trong Hyprland để thay thế: bấm modifier làm modmask đổi, khiến ràng "

@@ -261,6 +261,20 @@ PACK = {
  "set.key.press": 'esperando — púlsala ahora',
  "set.key": "tecla",
  "set.behaviour": "comportamiento",
+ "set.key.check": 'Comprobar de nuevo',
+ "set.key.ok": 'escuchando en %1',
+ "set.key.testing": 'comprobando…',
+ "set.key.badname": '%1 no es una tecla que tenga esta máquina — pulsa una tecla en su lugar',
+ "set.key.nogroup": 'No estás en el grupo `input`, así que no se puede abrir ni un teclado — '
+                    'la tecla se lee directamente del dispositivo, por debajo del escritorio',
+ "set.key.relogin": 'Estás en el grupo `input`, pero esta sesión empezó antes — '
+                    'cierra la sesión y vuelve a entrar',
+ "set.key.nodevice": 'Ningún teclado aquí informa de %1 — pulsa otra tecla',
+ "set.key.stopped": 'El servicio en segundo plano no está corriendo, así que nada escucha',
+ "set.key.stale": 'El servicio sigue escuchando en %1 — nunca recogió el cambio',
+ "set.key.off": 'El atajo está desactivado',
+ "set.key.fix.restart": 'Reiniciarlo',
+ "set.key.fix.group": 'Añadirme a `input`',
  "set.hotkeynote": "Se lee desde evdev, por debajo de xkb, así que la tecla se queda donde "
                    "está físicamente aunque tu distribución la remapee. No se puede asignar "
                    "un modificador en Hyprland en su lugar: pulsarlo cambia el modmask, lo "

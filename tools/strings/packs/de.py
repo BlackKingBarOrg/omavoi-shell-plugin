@@ -264,6 +264,20 @@ PACK = {
  "set.key.press": 'warte — jetzt drücken',
  "set.key": "Taste",
  "set.behaviour": "Verhalten",
+ "set.key.check": 'Erneut prüfen',
+ "set.key.ok": 'hört auf %1',
+ "set.key.testing": 'prüfe …',
+ "set.key.badname": '%1 ist keine Taste, die dieser Rechner hat — drücke stattdessen eine Taste',
+ "set.key.nogroup": 'Du bist nicht in der Gruppe `input`, also lässt sich keine einzige Tastatur '
+                    'öffnen — die Taste wird direkt vom Gerät gelesen, unterhalb des Desktops',
+ "set.key.relogin": 'Du bist in der Gruppe `input`, aber diese Sitzung begann davor — '
+                    'melde dich ab und wieder an',
+ "set.key.nodevice": 'Keine Tastatur hier meldet %1 — drücke eine andere Taste',
+ "set.key.stopped": 'Der Hintergrunddienst läuft nicht, also hört nichts zu',
+ "set.key.stale": 'Der Dienst hört noch auf %1 — er hat die Änderung nie übernommen',
+ "set.key.off": 'Das Tastenkürzel ist abgeschaltet',
+ "set.key.fix.restart": 'Neu starten',
+ "set.key.fix.group": 'Mich zu `input` hinzufügen',
  "set.hotkeynote": "Direkt von evdev gelesen, unterhalb von xkb, damit die Taste "
                    "physisch dort bleibt, wo sie ist, auch wenn dein Layout sie "
                    "umbelegt. Ein Modifier lässt sich in Hyprland nicht binden: ihn zu "

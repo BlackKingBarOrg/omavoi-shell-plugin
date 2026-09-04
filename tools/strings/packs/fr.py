@@ -261,6 +261,20 @@ PACK = {
  "set.key.press": 'en attente — appuie maintenant',
  "set.key": "touche",
  "set.behaviour": "comportement",
+ "set.key.check": 'Vérifier à nouveau',
+ "set.key.ok": 'écoute sur %1',
+ "set.key.testing": 'vérification…',
+ "set.key.badname": "%1 n'est pas une touche que cette machine possède — appuie plutôt sur une touche",
+ "set.key.nogroup": "Tu n'es pas dans le groupe `input`, donc aucun clavier ne peut être ouvert — "
+                    "la touche est lue directement sur le périphérique, sous le bureau",
+ "set.key.relogin": 'Tu es dans le groupe `input`, mais cette session a commencé avant — '
+                    'déconnecte-toi et reconnecte-toi',
+ "set.key.nodevice": 'Aucun clavier ici ne signale %1 — appuie sur une autre touche',
+ "set.key.stopped": "Le service en arrière-plan ne tourne pas, donc rien n'écoute",
+ "set.key.stale": "Le service écoute encore sur %1 — il n'a jamais pris en compte le changement",
+ "set.key.off": 'Le raccourci est désactivé',
+ "set.key.fix.restart": 'Le redémarrer',
+ "set.key.fix.group": "M'ajouter à `input`",
  "set.hotkeynote": "Lue depuis evdev, sous xkb, pour que la touche reste là où elle est "
                    "physiquement même si ta disposition la remappe. Impossible d'associer "
                    "un modificateur dans Hyprland à la place : appuyer dessus change le "

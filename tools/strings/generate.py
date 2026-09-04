@@ -518,6 +518,35 @@ section("settings", {
                      "กำลังรอ — กดเลย"),
  "set.key":        ("key", "按键", "ปุ่ม"),
  "set.behaviour":  ("behaviour", "行为", "พฤติกรรม"),
+ "set.key.check":   ("Check again", "重新检查", "ตรวจอีกครั้ง"),
+ "set.key.ok":      ("listening on %1", "正在监听 %1", "กำลังฟังที่ %1"),
+ "set.key.testing": ("checking…", "检查中……", "กำลังตรวจ…"),
+ "set.key.badname": ("%1 is not a key this machine has — press a key instead",
+                     "%1 不是这台机器上的按键 —— 直接按一下你想用的键",
+                     "%1 ไม่ใช่ปุ่มที่เครื่องนี้มี — กดปุ่มที่ต้องการเลย"),
+ "set.key.nogroup": ("you are not in the `input` group, so not one keyboard can be opened — "
+                     "the key is read straight from the device, below the desktop",
+                     "你不在 `input` 组里，所以一个键盘也打不开 —— "
+                     "按键是直接从设备读的，在桌面之下",
+                     "คุณไม่ได้อยู่ในกลุ่ม `input` จึงเปิดคีย์บอร์ดไม่ได้เลย — "
+                     "ปุ่มถูกอ่านจากอุปกรณ์โดยตรง ใต้ระดับเดสก์ท็อป"),
+ "set.key.relogin": ("you are in the `input` group, but this session started before that — "
+                     "log out and back in",
+                     "你已经在 `input` 组里了，但这次登录发生在加入之前 —— 注销后重新登录",
+                     "คุณอยู่ในกลุ่ม `input` แล้ว แต่เซสชันนี้เริ่มก่อนหน้านั้น — ออกแล้วเข้าใหม่"),
+ "set.key.nodevice": ("no keyboard here reports %1 — press a different key",
+                      "这里没有键盘会报出 %1 —— 换一个键按",
+                      "ไม่มีคีย์บอร์ดที่นี่รายงาน %1 — กดปุ่มอื่น"),
+ "set.key.stopped": ("the background service is not running, so nothing is listening",
+                     "后台服务没有在运行，所以没有任何东西在监听",
+                     "บริการเบื้องหลังไม่ได้ทำงาน จึงไม่มีอะไรกำลังฟัง"),
+ "set.key.stale":   ("the service is still listening on %1 — it never picked up the change",
+                     "服务还在监听 %1 —— 它没有接到这次改动",
+                     "บริการยังฟังที่ %1 — มันไม่ได้รับการเปลี่ยนแปลงนี้"),
+ "set.key.off":     ("the hotkey is switched off",
+                     "快捷键被关掉了", "ปุ่มลัดถูกปิดอยู่"),
+ "set.key.fix.restart": ("Restart it", "重启它", "รีสตาร์ต"),
+ "set.key.fix.group":   ("Add me to `input`", "把我加进 `input`", "เพิ่มฉันเข้า `input`"),
  "set.hotkeynote": ("Read from evdev, below xkb, so the key stays where it physically is even "
                     "if your layout remaps it. A modifier cannot be bound in Hyprland instead: "
                     "pressing one changes the modmask, which fires the release binding at once "

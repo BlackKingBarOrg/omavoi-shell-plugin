@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Io
 import qs.Commons
 import qs.Ui
@@ -40,6 +41,77 @@ Flickable {
       }
     }
   }
+
+  // -- is the key actually working? ---------------------------------------
+  //
+  // Asked of the machine rather than of the config, because the config was
+  // never the thing that broke: a key can be spelled right, owned by no
+  // readable device, or held by a listener that is still on the old one. The
+  // daemon answers all of that in one call; each answer here has the button
+  // that fixes it next to it, so nobody has to open a terminal to find out
+  // which of the four it was.
+  property var health: ({})
+  property bool checking: false
+  Process {
+    id: checker
+    command: ["omavoi", "hotkey", "check", "--json"]
+    onRunningChanged: root.checking = checker.running
+    stdout: StdioCollector {
+      onStreamFinished: {
+        try { root.health = JSON.parse(text) } catch (e) { root.health = ({}) }
+      }
+    }
+  }
+  // Covers three of the causes at once — stopped, listening on nothing, and
+  // listening on the previous key — and needs no password.
+  Process {
+    id: restarter
+    command: ["systemctl", "--user", "restart", "omavoid"]
+    onExited: function (code, status) { checkAgain.restart() }
+  }
+  // The one fix that needs root. Same command the first-run wizard folds in,
+  // and it leaves the relogin message behind on purpose: being added to a
+  // group does not add you to a session that already started.
+  Process {
+    id: grouper
+    command: ["pkexec", "/usr/bin/usermod", "-aG", "input",
+              Quickshell.env("USER") || ""]
+    onExited: function (code, status) { checkAgain.restart() }
+  }
+  // A restarted daemon needs a moment before it can answer.
+  Timer {
+    id: checkAgain
+    interval: 1400
+    onTriggered: checker.running = true
+  }
+
+  readonly property string ill: {
+    var h = root.health
+    if (!h || h.configured === undefined) return ""
+    if (h.enabled === false) return root.t("set.key.off")
+    if (h.name_ok === false) return root.tf("set.key.badname", h.configured)
+    if (h.group_listed && !h.group_held) return root.t("set.key.relogin")
+    if (!h.group_listed) return root.t("set.key.nogroup")
+    if (h.devices_problem) return root.tf("set.key.nodevice", h.configured)
+    if (h.daemon !== "running" || !h.listener) return root.t("set.key.stopped")
+    if (!h.matches) return root.tf("set.key.stale", h.bound)
+    return ""
+  }
+  // What the button next to the message does, or "" for the two that no
+  // button can do: pressing a key, and logging out.
+  readonly property string remedy: {
+    var h = root.health
+    if (root.ill === "" || !h) return ""
+    if (h.enabled === false || h.name_ok === false) return ""
+    if (h.group_listed && !h.group_held) return ""
+    if (!h.group_listed) return "group"
+    if (h.devices_problem) return ""
+    return "restart"
+  }
+
+  Component.onCompleted: checker.running = true
+  // The config changing is the moment a stale binding becomes possible.
+  onCfgChanged: checkAgain.restart()
 
   // `strings` is null for the instant between creation and the Loader setting
   // it, so the key stands in until then rather than a blank.
@@ -101,14 +173,43 @@ Flickable {
           enabled: !root.capturing
           onClicked: { root.captured = ""; grabber.running = true }
         }
-        Text {
-          Layout.fillWidth: true
-          elide: Text.ElideRight
-          text: root.captured
-          font.family: Style.font.family
-          font.pixelSize: Style.font.caption
-          color: root.capturedOk ? "#9ece6a" : Color.urgent
+        Button {
+          visible: root.remedy !== ""
+          text: root.remedy === "group" ? root.t("set.key.fix.group")
+                                        : root.t("set.key.fix.restart")
+          onClicked: {
+            if (root.remedy === "group") grouper.running = true
+            else restarter.running = true
+          }
         }
+        Button {
+          text: root.t("set.key.check")
+          enabled: !root.checking
+          onClicked: checker.running = true
+        }
+        Item { Layout.fillWidth: true }
+      }
+
+      // One line, and it is either the reason it does not work or the
+      // devices it is working on. Never both, and never neither.
+      Text {
+        Layout.fillWidth: true
+        Layout.maximumWidth: Style.space(760)
+        wrapMode: Text.Wrap
+        text: root.captured !== "" ? root.captured
+              : root.checking && root.ill === "" ? root.t("set.key.testing")
+              : root.ill !== "" ? root.ill
+              : root.health.configured !== undefined
+                ? root.tf("set.key.ok",
+                          (root.health.bound_devices || []).length > 0
+                          ? String(root.health.bound_devices.join(", "))
+                              .replace(/\/dev\/input\/\S+ /g, "")
+                          : "—")
+                : ""
+        font.family: Style.font.family
+        font.pixelSize: Style.font.caption
+        color: root.captured !== "" ? Color.urgent
+               : root.ill !== "" ? Color.urgent : "#9ece6a"
       }
       RowLayout {
         Layout.fillWidth: true
