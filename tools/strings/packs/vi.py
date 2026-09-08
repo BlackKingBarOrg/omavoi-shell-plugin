@@ -108,6 +108,9 @@ PACK = {
  "modes.matchoff": "Việc khớp theo cửa sổ đang tắt, nên các danh sách bên dưới đã được "
                    "cấu hình nhưng không có tác dụng. Nó cần được tinh chỉnh cho từng "
                    "ứng dụng trước khi đáng dùng.",
+ "modes.hiddenauto": 'Khớp theo cửa sổ đang bật nhưng phần điều khiển của nó đã bị ẩn, '
+                     'nên bấm một chế độ bên dưới sẽ không thay đổi chế độ thực sự '
+                     'được dùng. Tắt nó bằng `omavoi mode auto off`.',
  "modes.following": "đi theo cửa sổ",
  "modes.fixed": "cố định",
  "modes.activehere": "đang dùng trong cửa sổ này",

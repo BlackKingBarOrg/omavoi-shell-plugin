@@ -80,6 +80,16 @@ Item {
   function tf(k, a) { return root.strings ? root.strings.tf(k, a) : k }
 
   readonly property var modes: payload.modes || []
+  // Window matching is hidden for now. It wants tuning per application before
+  // it earns its keep, and until then every surface it owns is a control that
+  // is configured and inert — worse than no control, because it invites you
+  // to set it and then quietly does nothing with it.
+  //
+  // Nothing behind the UI is touched: `mode.match` still lives in the config,
+  // `omavoi mode match/unmatch/auto` still work, and the daemon still follows
+  // the focused window if it was switched on. This is the whole switch.
+  readonly property bool showWindowMatch: false
+
   readonly property var switching: payload.switching || ({ by_window: false, mode: "default" })
   readonly property bool byWindow: switching.by_window === true
   readonly property var llms: payload.llm || []
@@ -166,6 +176,7 @@ Item {
                 color: (m.steps || []).length ? Color.accent : Color.muted
               }
               Text {
+                visible: root.showWindowMatch
                 Layout.fillWidth: true
                 elide: Text.ElideRight
                 text: (m.match || []).join(", ") || root.t("modes.fallback")
@@ -263,7 +274,22 @@ Item {
 
         // How the mode gets picked at all. Without this the trigger chips below
         // are a lie: they are configured, but nothing reads them.
+        // Hiding the controls does not switch the feature off, and the click
+        // handler below still refuses to change modes while it is on. That
+        // refusal used to be explained by the banner underneath; with the
+        // banner gone it would be silence, so it is said here instead.
+        Text {
+          visible: !root.showWindowMatch && root.byWindow
+          Layout.fillWidth: true
+          wrapMode: Text.Wrap
+          text: root.t("modes.hiddenauto")
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+          color: "#e0af68"
+        }
+
         Rectangle {
+          visible: root.showWindowMatch
           Layout.fillWidth: true
           implicitHeight: pick.implicitHeight + Style.space(18)
           color: root.byWindow
@@ -352,6 +378,7 @@ Item {
 
         // -- triggers --
         ColumnLayout {
+          visible: root.showWindowMatch
           Layout.fillWidth: true
           spacing: Style.space(6)
           opacity: root.byWindow ? 1 : 0.5
@@ -425,7 +452,10 @@ Item {
           }
         }
 
+        // Separated the triggers from the chain; with them gone it would be a
+        // rule under nothing.
         Rectangle {
+          visible: root.showWindowMatch
           Layout.fillWidth: true; Layout.preferredHeight: 1
           color: Qt.rgba(Color.foreground.r, Color.foreground.g, Color.foreground.b, 0.14)
         }

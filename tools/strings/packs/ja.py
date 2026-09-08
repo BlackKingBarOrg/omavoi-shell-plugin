@@ -107,6 +107,9 @@ PACK = {
  "modes.longestwins": "下で最も長く一致したものが勝ちます。何も一致しなければ default に戻ります。",
  "modes.matchoff": "ウィンドウ照合は無効なので、下のリストは設定済みでも動作しません。"
                    "役に立つまでにはアプリごとの調整が必要です。",
+ "modes.hiddenauto": 'ウィンドウ照合は有効ですが操作部分は隠されているため、下のモードを'
+                     'クリックしても実際に使われるモードは変わりません。'
+                     '`omavoi mode auto off` で無効にしてください。',
  "modes.following": "ウィンドウに追従",
  "modes.fixed": "固定",
  "modes.activehere": "このウィンドウで有効",

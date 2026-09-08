@@ -277,6 +277,13 @@ section("modes", {
                       "窗口匹配已关闭，下面的列表虽已配置但不会生效。它需要为每个应用逐个调过才值得开启。",
                       "การจับคู่หน้าต่างปิดอยู่ รายการด้านล่างจึงถูกตั้งไว้แต่ไม่ทำงาน "
                       "ต้องปรับทีละแอปก่อนจะคุ้มค่าที่จะเปิด"),
+ "modes.hiddenauto": ("Window matching is switched on but its controls are hidden, so "
+                     "clicking a mode below will not change which one a take uses. "
+                     "Turn it off with `omavoi mode auto off`.",
+                     "窗口匹配是开着的，但它的控件已被隐藏，所以点击下面的模式不会改变"
+                     "录音实际使用的模式。用 `omavoi mode auto off` 关掉它。",
+                     "การจับคู่หน้าต่างเปิดอยู่แต่ตัวควบคุมถูกซ่อน การคลิกโหมดด้านล่างจึงไม่เปลี่ยน"
+                     "โหมดที่ใช้จริง ปิดด้วย `omavoi mode auto off`"),
  "modes.following":  ("following the window", "跟随窗口", "ตามหน้าต่าง"),
  "modes.fixed":      ("fixed", "固定", "คงที่"),
  "modes.activehere": ("active in this window", "在当前窗口生效", "ทำงานในหน้าต่างนี้"),

@@ -109,6 +109,9 @@ PACK = {
  "modes.matchoff": "La coincidencia por ventana está desactivada, así que las listas de "
                    "abajo están configuradas pero inertes. Hay que ajustarla aplicación "
                    "por aplicación antes de que valga la pena.",
+ "modes.hiddenauto": 'La coincidencia por ventana está activada pero sus controles '
+                     'están ocultos, así que pulsar un modo abajo no cambiará el que '
+                     'se usa de verdad. Desactívala con `omavoi mode auto off`.',
  "modes.following": "sigue a la ventana",
  "modes.fixed": "fijo",
  "modes.activehere": "activo en esta ventana",

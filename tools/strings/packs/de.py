@@ -110,6 +110,10 @@ PACK = {
  "modes.matchoff": "Fensterabgleich ist aus, die Listen unten sind also "
                    "konfiguriert, aber wirkungslos. Er will pro Anwendung "
                    "eingestellt werden, bevor er sich lohnt.",
+ "modes.hiddenauto": 'Fensterabgleich ist eingeschaltet, seine Bedienelemente sind '
+                     'aber ausgeblendet — ein Klick auf einen Modus unten ändert also '
+                     'nicht, welcher tatsächlich benutzt wird. Abschalten mit '
+                     '`omavoi mode auto off`.',
  "modes.following": "folgt dem Fenster",
  "modes.fixed": "fest",
  "modes.activehere": "in diesem Fenster aktiv",
