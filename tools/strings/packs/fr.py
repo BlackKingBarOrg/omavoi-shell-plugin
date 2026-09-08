@@ -175,6 +175,7 @@ PACK = {
  "models.now": "EN COURS",
  "models.running": "en cours",
  "models.notloaded": "non chargé",
+ "models.llmnone": "aucun chargé — chacun démarre à sa première utilisation",
  "models.coldshort": 'à froid',
  "models.cold": "à froid · démarre à la première utilisation",
  "models.ready": "prêt",

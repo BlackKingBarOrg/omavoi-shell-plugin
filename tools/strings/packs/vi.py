@@ -172,6 +172,7 @@ PACK = {
  "models.now": "ĐANG CHẠY",
  "models.running": "đang chạy",
  "models.notloaded": "chưa nạp",
+ "models.llmnone": 'chưa nạp — mỗi cái khởi động khi dùng lần đầu',
  "models.coldshort": 'chưa chạy',
  "models.cold": "chưa khởi động · chạy khi dùng lần đầu",
  "models.ready": "sẵn sàng",

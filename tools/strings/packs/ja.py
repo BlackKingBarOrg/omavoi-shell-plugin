@@ -170,6 +170,7 @@ PACK = {
  "models.now": "稼働中",
  "models.running": "稼働中",
  "models.notloaded": "未ロード",
+ "models.llmnone": '未ロード — それぞれ初回の使用時に起動します',
  "models.coldshort": '停止中',
  "models.cold": "停止中 · 初回利用時に起動",
  "models.ready": "準備完了",

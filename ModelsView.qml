@@ -44,6 +44,13 @@ Item {
   // for, and the two differ from the moment of an edit until a restart.
   readonly property var engines: payload.engines || ({})
   readonly property var speechNow: engines.speech || ({})
+  // Servers resident on this machine right now. The cards below already say
+  // which configurations are usable; what they cannot say is what is actually
+  // loaded and holding memory, which is the whole of what the speech column's
+  // matching line is for.
+  readonly property var llmResident: (engines.llm || []).filter(function (l) {
+    return l.live === true && (l.pid || 0) > 0
+  })
   readonly property bool daemonUp: payload.daemon === true
   readonly property bool speechLive: root.speechNow.live === true
   readonly property bool stale: root.daemonUp && root.speechLive
@@ -429,6 +436,59 @@ Item {
             }
           }
 
+          // The speech column has had this line all along and this one had
+          // nothing, which was most of why the two halves did not look alike.
+          // Not urgent when it is empty, unlike speech: an LLM server is cold
+          // until a take reaches it, and that is the resting state rather
+          // than a fault.
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Style.space(8)
+            Text {
+              text: root.t("models.now")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              font.letterSpacing: 1
+              color: Color.muted
+            }
+            Text {
+              visible: !root.daemonUp
+              Layout.fillWidth: true
+              text: root.t("models.nodaemon")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Color.urgent
+            }
+            Text {
+              visible: root.daemonUp && root.llmResident.length === 0
+              Layout.fillWidth: true
+              text: root.t("models.llmnone")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Qt.darker(Color.muted, 1.1)
+            }
+            Repeater {
+              model: root.daemonUp ? root.llmResident : []
+              RowLayout {
+                readonly property var l: modelData
+                spacing: Style.space(8)
+                Text {
+                  text: l.engine + (l.model ? "  " + String(l.model).replace("llm:", "") : "")
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.body
+                  color: Color.foreground
+                }
+                Text {
+                  text: root.hostport(l.url) + "  pid " + l.pid
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.caption
+                  color: Qt.darker(Color.muted, 1.1)
+                }
+              }
+            }
+            Item { Layout.fillWidth: true }
+          }
+
           // Three kinds, one row each, in the same shape as the speech engines
         // above — an LLM step is one of these, and nothing else. It was an
         // open-ended list of named entries, which put an implementation detail
@@ -677,34 +737,13 @@ Item {
           }
         }
 
-        // The one thing worth shouting about: a remote entry with no key
-          // cannot work, and nothing else on the row says why.
-          Repeater {
-            model: (root.payload.llm || []).filter(function (l) { return !!l.live_problem })
-            Text {
-              Layout.fillWidth: true
-              wrapMode: Text.Wrap
-              text: modelData.name + ": " + modelData.live_problem
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              color: Color.urgent
-            }
-          }
-
-          Text {
-            Layout.fillWidth: true
-            wrapMode: Text.Wrap
-            text: root.t("models.endpointnote")
-            font.family: Style.font.family
-            font.pixelSize: Style.font.caption
-            color: Qt.darker(Color.muted, 1.1)
-          }
-
           // -- the LLM catalogue --
           //
-          // These live under LLM, not in the speech table above: they are both
-          // gguf, but "use this one" means a mode's step names it, never a
-          // global switch, so there is deliberately no Use button here.
+          // These live under LLM, not in the speech table above, because they
+          // are the other family's weights — same gguf container, different
+          // job. Use points the local configuration at them, which is the
+          // global switch; a mode's step can still pin different weights for
+          // itself in the Modes tab.
           RowLayout {
             Layout.topMargin: Style.space(10)
             Layout.fillWidth: true
@@ -735,6 +774,29 @@ Item {
               useCommand: "omavoi config set llm." + (root.localLlms.length ? root.localLlms[0].name : "local") + ".model " + modelData.key
               onCommand: function (c) { root.command(c) }
             }
+          }
+
+        // The one thing worth shouting about: a remote entry with no key
+          // cannot work, and nothing else on the row says why.
+          Repeater {
+            model: (root.payload.llm || []).filter(function (l) { return !!l.live_problem })
+            Text {
+              Layout.fillWidth: true
+              wrapMode: Text.Wrap
+              text: modelData.name + ": " + modelData.live_problem
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Color.urgent
+            }
+          }
+
+          Text {
+            Layout.fillWidth: true
+            wrapMode: Text.Wrap
+            text: root.t("models.endpointnote")
+            font.family: Style.font.family
+            font.pixelSize: Style.font.caption
+            color: Qt.darker(Color.muted, 1.1)
           }
 
       }

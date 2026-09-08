@@ -179,6 +179,7 @@ PACK = {
  "models.now": "LÄUFT JETZT",
  "models.running": "läuft",
  "models.notloaded": "nicht geladen",
+ "models.llmnone": 'keiner geladen — jeder startet bei der ersten Nutzung',
  "models.coldshort": 'kalt',
  "models.cold": "kalt · startet beim ersten Gebrauch",
  "models.ready": "bereit",
