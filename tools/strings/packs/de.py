@@ -34,6 +34,9 @@ PACK = {
  "up.title": 'AKTUALISIEREN',
  "up.behind": '%1 neue Commits auf dem Zweig des Plugins',
  "up.current": 'Aktuell',
+ "up.daemon.blind": 'Der Dienst wird separat installiert und merkt sich nicht, aus '
+                     'welchem Commit er stammt — diese Seite kann also nicht sagen, ob er '
+                     'aktuell ist. Die Aktualisierung installiert ihn ohnehin neu.',
  "up.unknown": 'Nicht feststellbar — das Plugin wurde nicht aus git installiert',
  "up.dirty": 'Das installierte Plugin hat lokale Änderungen und kann nicht vorspulen. Installiere es neu: omarchy plugin remove ai.bkblab.omavoi --yes && omarchy plugin add %1 --enable --yes',
  "up.run": 'Aktualisieren',

@@ -123,6 +123,22 @@ ColumnLayout {
     color: root.behind > 0 ? "#e0af68" : Color.foreground
   }
 
+  // The line above answers "is the plugin behind?", which is the only half
+  // this screen can see. The daemon is a separate `uv tool install` whose
+  // receipt records the URL and not the commit, and the package version is
+  // static, so nothing here can compare them — and reporting "up to date"
+  // for a question it never asked is the same fault as reporting the config
+  // file instead of the running binding.
+  Text {
+    Layout.fillWidth: true
+    Layout.maximumWidth: Style.space(760)
+    wrapMode: Text.Wrap
+    text: root.t("up.daemon.blind")
+    font.family: Style.font.family
+    font.pixelSize: Style.font.caption
+    color: Qt.darker(Color.muted, 1.15)
+  }
+
   // Said before the button, because the button cannot fix it and the message
   // pacman gives for it explains nothing.
   Text {

@@ -34,6 +34,9 @@ PACK = {
  "up.title": 'CẬP NHẬT',
  "up.behind": 'có %1 commit mới trên nhánh của plugin',
  "up.current": 'Đã mới nhất',
+ "up.daemon.blind": 'Dịch vụ nền được cài riêng và không ghi lại nó đến từ commit nào, '
+                     'nên trang này không thể cho bạn biết nó có mới nhất hay không. '
+                     'Chạy cập nhật sẽ cài lại nó trong mọi trường hợp.',
  "up.unknown": 'Không xác định được — plugin này không cài từ git',
  "up.dirty": 'Plugin đã cài có thay đổi cục bộ nên không fast-forward được. Hãy cài lại: omarchy plugin remove ai.bkblab.omavoi --yes && omarchy plugin add %1 --enable --yes',
  "up.run": 'Cập nhật',

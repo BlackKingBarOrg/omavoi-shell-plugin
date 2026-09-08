@@ -34,6 +34,9 @@ PACK = {
  "up.title": 'MISE À JOUR',
  "up.behind": '%1 nouveaux commits sur la branche du plugin',
  "up.current": 'À jour',
+ "up.daemon.blind": "Le service est installé séparément et ne retient pas de quel "
+                     "commit il vient : cet écran ne peut donc pas dire s'il est à jour. "
+                     "La mise à jour le réinstalle dans tous les cas.",
  "up.unknown": "Impossible de savoir — le plugin n'a pas été installé depuis git",
  "up.dirty": 'Le plugin installé a des modifications locales, il ne peut pas avancer. Réinstalle-le : omarchy plugin remove ai.bkblab.omavoi --yes && omarchy plugin add %1 --enable --yes',
  "up.run": 'Mettre à jour',

@@ -151,6 +151,13 @@ section("update", {
                   "插件所在分支上有 %1 个新提交",
                   "มี %1 คอมมิตใหม่บนสาขาของปลั๊กอิน"),
  "up.current":   ("Up to date", "已是最新", "เป็นรุ่นล่าสุดแล้ว"),
+ "up.daemon.blind": ("The daemon is installed separately and does not record which "
+                     "commit it came from, so this screen cannot tell you whether it "
+                     "is current. Running the update reinstalls it either way.",
+                     "守护进程是单独安装的，而且不记录自己来自哪个提交，"
+                     "所以这个页面无法告诉你它是不是最新的。无论如何，执行更新都会重装它。",
+                     "เดมอนถูกติดตั้งแยกและไม่บันทึกว่ามาจากคอมมิตใด "
+                     "หน้านี้จึงบอกไม่ได้ว่าเป็นเวอร์ชันล่าสุดหรือไม่ การอัปเดตจะติดตั้งใหม่อยู่ดี"),
  "up.unknown":   ("Cannot tell — the plugin was not installed from git",
                   "无法判断 —— 这个插件不是从 git 安装的",
                   "บอกไม่ได้ — ปลั๊กอินนี้ไม่ได้ติดตั้งจาก git"),

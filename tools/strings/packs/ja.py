@@ -34,6 +34,9 @@ PACK = {
  "up.title": '更新',
  "up.behind": 'プラグインのブランチに %1 件の新しいコミットがあります',
  "up.current": '最新です',
+ "up.daemon.blind": 'デーモンは別途インストールされ、どのコミット由来かを記録しません。'
+                     'そのためこの画面では最新かどうか判断できません。更新を実行すれば'
+                     'いずれにせよ再インストールされます。',
  "up.unknown": '判定できません —— このプラグインは git から入れたものではありません',
  "up.dirty": 'インストール済みのプラグインにローカルの変更があるため早送りできません。入れ直してください: omarchy plugin remove ai.bkblab.omavoi --yes && omarchy plugin add %1 --enable --yes',
  "up.run": '更新する',
