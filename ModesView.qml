@@ -39,6 +39,23 @@ Item {
       return kind + "  " + m.replace("llm:", "")
     return kind
   }
+  // Weights a step can be pointed at: the LLM catalogue, downloaded only. A
+  // mode changes the model, never the engine — the same rule the speech list
+  // above follows.
+  readonly property var weightChoices: (catalogue.models || []).filter(function (m) {
+    return m.kind === "llm" && m.downloaded
+  })
+  // Only one of the three configurations runs weights from the catalogue. An
+  // agent brings its own model and an endpoint's is set where the endpoint
+  // is, so offering a choice there would write a value nothing reads.
+  function isLocalLlm(name) {
+    var l = catalogue.llm || []
+    for (var i = 0; i < l.length; i++)
+      if (l[i].name === name)
+        return ["llama-local", "llama.cpp", "llamacpp"]
+                 .indexOf(String(l[i].backend || "")) >= 0
+    return false
+  }
   function llmModelOf(name) {
     var l = catalogue.llm || []
     for (var i = 0; i < l.length; i++)
@@ -640,6 +657,46 @@ Item {
                     onClicked: root.commandArgs(
                       ["omavoi", "mode", "step", root.current, "rm", String(idx)])
                   }
+                }
+
+                // Which weights this step runs. Downloading a model made it
+                // appear in the Models tab and nowhere else: a step named a
+                // configuration and inherited whatever that configuration
+                // pointed at, so a second local model had no way of being
+                // reached from a mode at all.
+                RowLayout {
+                  visible: root.isLocalLlm(step.llm)
+                           && root.weightChoices.length > 0
+                  Layout.fillWidth: true
+                  spacing: Style.space(7)
+                  Text {
+                    text: root.t("modes.weights")
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.caption
+                    color: Color.muted
+                  }
+                  // Inherit is the absence of an override, and it says what
+                  // it will follow rather than only that it follows.
+                  OmChip {
+                    label: root.tf("modes.inherit",
+                                   root.llmModelOf(step.llm).replace("llm:", ""))
+                    on: String(step.model || "") === ""
+                    onClicked: if (!on) root.commandArgs(
+                      ["omavoi", "mode", "step", root.current, "model",
+                       String(idx), ""])
+                  }
+                  Repeater {
+                    model: root.weightChoices
+                    OmChip {
+                      readonly property string wkey: modelData.key
+                      label: wkey.replace("llm:", "")
+                      on: String(step.model || "") === wkey
+                      onClicked: if (!on) root.commandArgs(
+                        ["omavoi", "mode", "step", root.current, "model",
+                         String(idx), wkey])
+                    }
+                  }
+                  Item { Layout.fillWidth: true }
                 }
 
                 OmTextArea {

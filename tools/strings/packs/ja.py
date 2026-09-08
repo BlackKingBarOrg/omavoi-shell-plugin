@@ -142,6 +142,8 @@ PACK = {
                  "下で追加すると、そのプロンプトがここに現れ、編集できます。"
                  "使える初期値が最初から入っています。",
  "modes.addstep": "+ ステップを追加",
+ "modes.weights": 'ウェイト',
+ "modes.inherit": '既定 (%1)',
  "modes.nollm": "LLM が未設定です —— 「モデル」タブを確認してください",
  "modes.inject.auto": "自動",
  "modes.inject.clipboard": "クリップボード",

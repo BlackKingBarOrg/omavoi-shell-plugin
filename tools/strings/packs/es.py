@@ -146,6 +146,8 @@ PACK = {
                  "escribir. Añade una abajo y su prompt aparecerá aquí, editable y ya con "
                  "un valor por defecto utilizable.",
  "modes.addstep": "+ añadir un paso",
+ "modes.weights": 'Pesos',
+ "modes.inherit": 'por defecto (%1)',
  "modes.nollm": "no hay ningún LLM configurado — mira la pestaña Modelos",
  "modes.inject.auto": "auto",
  "modes.inject.clipboard": "portapapeles",

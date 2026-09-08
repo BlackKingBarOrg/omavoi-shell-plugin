@@ -146,6 +146,8 @@ PACK = {
                  "écrire. Ajoutes-en une ci-dessous et son prompt apparaîtra ici, "
                  "modifiable, avec une valeur par défaut utilisable.",
  "modes.addstep": "+ ajouter une étape",
+ "modes.weights": 'Poids',
+ "modes.inherit": 'par défaut (%1)',
  "modes.nollm": "aucun LLM configuré — voir l'onglet Modèles",
  "modes.inject.auto": "auto",
  "modes.inject.clipboard": "presse-papiers",
