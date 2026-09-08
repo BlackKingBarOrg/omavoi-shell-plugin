@@ -40,13 +40,6 @@ Item {
   readonly property var localLlms: (payload.llm || []).filter(function (l) {
     return l.backend === "llama-local" || l.backend === "llama.cpp"
   })
-  function entriesUsing(key) {
-    var out = []
-    for (var i = 0; i < root.localLlms.length; i++)
-      if (String(root.localLlms[i].model) === String(key))
-        out.push(root.localLlms[i].name)
-    return out
-  }
   // What the daemon has actually loaded. The config only says what was asked
   // for, and the two differ from the moment of an edit until a restart.
   readonly property var engines: payload.engines || ({})
@@ -378,86 +371,12 @@ Item {
 
           Repeater {
             model: root.speechModels
-            RowLayout {
-              readonly property var m: modelData
-              Layout.fillWidth: true
-              spacing: Style.space(10)
-
-              Text {
-                Layout.preferredWidth: Style.space(12)
-                // ▶ is loaded right now, ● is selected but not loaded, ○ is
-                // merely on disk. The first two coincide most of the time; when
-                // they do not, that is the thing worth seeing.
-                text: m.running ? "▶" : (m.active ? "●" : (m.downloaded ? "○" : ""))
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: m.running ? Color.accent
-                                 : (m.active ? Color.urgent : Color.muted)
-              }
-              Text {
-                Layout.preferredWidth: Style.space(178)
-                text: m.key
-                font.family: Style.font.family
-                font.pixelSize: Style.font.body
-                color: Color.foreground
-              }
-              Text {
-                Layout.preferredWidth: Style.space(46)
-                horizontalAlignment: Text.AlignRight
-                text: (m.size_mb / 1024).toFixed(1) + "G"
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.muted
-              }
-              Text {
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-                text: m.note
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: m.tags.indexOf("recommended") >= 0 ? Color.foreground : Color.muted
-              }
-              RowLayout {
-                Layout.preferredWidth: Style.space(180)
-                spacing: Style.space(7)
-                Item { Layout.fillWidth: true }
-                Text {
-                  visible: m.running === true
-                  text: root.t("models.running")
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Color.accent
-                }
-                Text {
-                  visible: m.downloaded && !m.ours && m.running !== true
-                  text: root.t("models.ondisk")
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Color.muted
-                }
-                Text {
-                  visible: !m.downloaded && root.pulling[m.key] === true
-                  text: root.t("models.downloading")
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Color.accent
-                }
-                Button {
-                  visible: !m.downloaded && root.pulling[m.key] !== true
-                  text: root.t("models.download")
-                  onClicked: root.command("omavoi model pull " + m.key)
-                }
-                Button {
-                  visible: m.downloaded && !m.active
-                  text: root.t("models.use")
-                  onClicked: root.command("omavoi model use " + m.key)
-                }
-                Button {
-                  visible: m.downloaded && m.ours && !m.active
-                  text: root.t("models.remove")
-                  onClicked: root.command("omavoi model rm " + m.key)
-                }
-              }
+            ModelRow {
+              m: modelData
+              strings: root.strings
+              pulling: root.pulling
+              useCommand: "omavoi model use " + modelData.key
+              onCommand: function (c) { root.command(c) }
             }
           }
 
@@ -807,103 +726,14 @@ Item {
 
           Repeater {
             model: root.llmModels
-            RowLayout {
-              readonly property var m: modelData
-              Layout.fillWidth: true
-              spacing: Style.space(10)
-
-              Text {
-                Layout.preferredWidth: Style.space(12)
-                // ▶ loaded now, ● an entry points at it, ○ merely on disk.
-                text: m.running ? "▶"
-                      : (root.entriesUsing(m.key).length > 0 ? "●"
-                         : (m.downloaded ? "○" : ""))
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: m.running || root.entriesUsing(m.key).length > 0
-                       ? Color.accent : Color.muted
-              }
-              Text {
-                Layout.preferredWidth: Style.space(150)
-                text: m.key
-                font.family: Style.font.family
-                font.pixelSize: Style.font.body
-                color: Color.foreground
-              }
-              Text {
-                Layout.preferredWidth: Style.space(46)
-                horizontalAlignment: Text.AlignRight
-                text: (m.size_mb / 1024).toFixed(1) + "G"
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.muted
-              }
-              // Won't-fit is worth saying before the download, not after — and
-              // never about the model that is loaded right now, whose own
-              // weights are most of what the free-VRAM figure is missing.
-              Text {
-                visible: m.fits === false && m.running !== true
-                text: root.t("models.needs") + " "
-                      + (m.needed_mb / 1024).toFixed(1) + "G"
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.urgent
-              }
-              Text {
-                Layout.fillWidth: true
-                Layout.minimumWidth: Style.space(40)
-                elide: Text.ElideRight
-                text: m.note
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.muted
-              }
-              RowLayout {
-                Layout.preferredWidth: Style.space(240)
-                spacing: Style.space(7)
-                Item { Layout.fillWidth: true }
-                Text {
-                  visible: m.running === true
-                  text: root.t("models.running")
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Color.accent
-                }
-                Text {
-                  visible: !m.downloaded && root.pulling[m.key] === true
-                  text: root.t("models.downloading")
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Color.accent
-                }
-                Repeater {
-                  // Downloaded and not already the choice: offer to make it so.
-                  model: m.downloaded ? root.localLlms : []
-                  OmChip {
-                    readonly property var entry: modelData
-                    visible: String(entry.model) !== String(m.key)
-                    // The name only when there is a choice to make; with one
-                    // local entry "Use local" is a longer way to say "Use".
-                    label: root.localLlms.length > 1
-                           ? "→ " + entry.name
-                           : root.t("models.use")
-                    on: false
-                    onClicked: root.command("omavoi config set llm."
-                                            + entry.name + ".model " + m.key)
-                  }
-                }
-                Button {
-                  visible: !m.downloaded && root.pulling[m.key] !== true
-                  text: root.t("models.download")
-                  onClicked: root.command("omavoi model pull " + m.key)
-                }
-                Button {
-                  visible: m.downloaded && m.ours && m.running !== true
-                           && root.entriesUsing(m.key).length === 0
-                  text: root.t("models.remove")
-                  onClicked: root.command("omavoi model rm " + m.key)
-                }
-              }
+            ModelRow {
+              m: modelData
+              strings: root.strings
+              pulling: root.pulling
+              // The one real difference: LLM weights are chosen by pointing
+              // the local configuration at them.
+              useCommand: "omavoi config set llm." + (root.localLlms.length ? root.localLlms[0].name : "local") + ".model " + modelData.key
+              onCommand: function (c) { root.command(c) }
             }
           }
 
