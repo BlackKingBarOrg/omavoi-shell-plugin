@@ -83,7 +83,20 @@ Item {
 
   // The fields are a detour, not the page: three rows say what is configured,
   // and only the one you are changing needs to be open.
-  property bool editingApi: false
+  // The endpoint panel starts open while there is nothing in it.
+  //
+  // It was collapsed behind an Edit button always, which was right for an
+  // endpoint already set up — and wrong for one that has never been touched,
+  // where a button nobody has a reason to press is indistinguishable from
+  // there being no way to do it at all. So: open until it is configured,
+  // closed once it is, and whatever the user clicks wins over both.
+  property var apiOpen: null
+  readonly property bool apiBlank: {
+    var a = root.entryNamed("api")
+    return a ? (String(a.base_url || "") === "" || a.has_key !== true) : false
+  }
+  readonly property bool editingApi: root.apiOpen !== null ? root.apiOpen === true
+                                                          : root.apiBlank
   property string keyNote: ""
   property string checkNote: ""
   property bool checkOk: false
@@ -496,7 +509,7 @@ Item {
                                             : root.t("models.f.edit"))
                          : ""
             actionOn: root.editingApi
-            onAction: root.editingApi = !root.editingApi
+            onAction: root.apiOpen = !root.editingApi
           }
         }
 
