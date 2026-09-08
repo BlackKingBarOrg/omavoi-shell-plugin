@@ -244,72 +244,29 @@ Item {
                 detail: root.t("models.e.api.sub"),
                 note: root.t("models.e.api.note") }
             ]
-            Rectangle {
+            ConfigCard {
               readonly property var eng: modelData
-              readonly property bool on: root.payload.backend === eng.id
-              Layout.fillWidth: true
-              implicitHeight: engRow.implicitHeight + Style.space(16)
-              color: on ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.08) : "transparent"
-              border.width: 1
-              border.color: on ? Color.accent
-                               : Qt.rgba(Color.foreground.r, Color.foreground.g,
-                                         Color.foreground.b, 0.2)
-              radius: Style.cornerRadius
-
-              RowLayout {
-                id: engRow
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.leftMargin: Style.space(11)
-                anchors.rightMargin: Style.space(11)
-                spacing: Style.space(10)
-
-                Rectangle {
-                  Layout.alignment: Qt.AlignVCenter
-                  width: Style.space(9); height: width
-                  radius: width / 2
-                  color: on ? Color.accent : "transparent"
-                  border.width: 1
-                  border.color: on ? Color.accent : Color.muted
-                }
-                Text {
-                  // The dot to the left is the selection; this says whether the
-                  // selection is what is actually up.
-                  visible: root.daemonUp && root.speechLive
-                           && String(root.speechNow.backend || "") === eng.id
-                  text: "▶"
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Color.accent
-                }
-                Text {
-                  Layout.preferredWidth: Style.space(112)
-                  text: eng.name
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.body
-                  color: Color.foreground
-                }
-                Text {
-                  Layout.fillWidth: true
-                  elide: Text.ElideRight
-                  text: eng.detail
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Color.muted
-                }
-                Text {
-                  text: eng.note
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: eng.id === "api" ? Color.urgent : Color.muted
-                }
-              }
-              MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: if (!on) root.command("omavoi config set speech.backend " + eng.id)
-              }
+              readonly property bool up: root.daemonUp && root.speechLive
+                                         && String(root.speechNow.backend || "") === eng.id
+              selectable: true
+              selected: root.payload.backend === eng.id
+              running: up
+              name: eng.name
+              // The same slot the LLM cards use for what a route is actually
+              // set to: the engine and weights, once this is the one running.
+              secondary: up ? String(root.speechNow.engine || "")
+                              + (root.speechNow.model ? "  " + root.speechNow.model : "")
+                            : ""
+              detail: eng.detail
+              // Selected and not up is a fault here, unlike an LLM server,
+              // which is cold until a take reaches it.
+              status: up ? root.t("models.running")
+                      : (root.payload.backend === eng.id && root.daemonUp
+                         ? root.t("models.notloaded") : "")
+              statusColor: up ? Color.accent : Color.urgent
+              note: eng.note
+              noteColor: eng.id === "api" ? Color.urgent : Color.muted
+              onChosen: root.command("omavoi config set speech.backend " + eng.id)
             }
           }
 
@@ -504,104 +461,36 @@ Item {
             { key: "api", name: root.t("models.k.api"),
               detail: root.t("models.k.api.sub") }
           ]
-          Rectangle {
+          ConfigCard {
             readonly property var kind: modelData
             readonly property var l: root.entryNamed(kind.key)
             readonly property bool inUse: l && (l.used_by || []).length > 0
-            Layout.fillWidth: true
-            implicitHeight: kindRow.implicitHeight + Style.space(16)
-            color: inUse ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.06)
-                         : "transparent"
-            border.width: 1
-            border.color: inUse ? Qt.rgba(Color.accent.r, Color.accent.g,
-                                          Color.accent.b, 0.55)
-                                : Qt.rgba(Color.foreground.r, Color.foreground.g,
-                                          Color.foreground.b, 0.18)
-            radius: Style.cornerRadius
-
-            RowLayout {
-              id: kindRow
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.verticalCenter: parent.verticalCenter
-              anchors.leftMargin: Style.space(11)
-              anchors.rightMargin: Style.space(11)
-              spacing: Style.space(10)
-
-              Text {
-                Layout.alignment: Qt.AlignVCenter
-                Layout.preferredWidth: Style.space(12)
-                text: (l && l.live_running === true) ? "▶" : ""
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.accent
-              }
-              ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 1
-                RowLayout {
-                  Layout.fillWidth: true
-                  spacing: Style.space(8)
-                  Text {
-                    text: kind.name
-                    font.family: Style.font.family
-                    font.pixelSize: Style.font.body
-                    color: Color.foreground
-                  }
-                  Text {
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
-                    // What it is actually set to, which differs per kind: the
-                    // agent's name, the weights, the endpoint's model.
-                    text: l ? String(l.live_engine || l.backend || "")
-                              + (l.model ? "  " + String(l.model).replace("llm:", "") : "")
-                            : ""
-                    font.family: Style.font.family
-                    font.pixelSize: Style.font.caption
-                    color: Color.muted
-                  }
-                }
-                Text {
-                  Layout.fillWidth: true
-                  wrapMode: Text.Wrap
-                  text: kind.detail
-                  font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
-                  color: Qt.darker(Color.muted, 1.15)
-                }
-              }
-              Text {
-                Layout.preferredWidth: Style.space(84)
-                horizontalAlignment: Text.AlignRight
-                elide: Text.ElideRight
-                text: !l ? root.t("models.k.unset")
-                      : l.live_problem ? root.t("models.nokey")
-                      : l.live_running === true ? root.t("models.running")
-                      : (l.remote ? root.t("models.ready") : root.t("models.coldshort"))
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: !l ? Qt.darker(Color.muted, 1.2)
-                       : l.live_problem ? Color.urgent
-                       : l.live_running === true ? Color.accent
-                       : Qt.darker(Color.muted, 1.1)
-              }
-              Text {
-                Layout.preferredWidth: Style.space(96)
-                horizontalAlignment: Text.AlignRight
-                elide: Text.ElideRight
-                text: (l && (l.used_by || []).length) ? (l.used_by || []).join(", ") : "—"
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: inUse ? Color.accent : Qt.darker(Color.muted, 1.2)
-              }
-              OmChip {
-                visible: kind.key === "api"
-                label: root.editingApi ? root.t("models.f.close")
-                                       : root.t("models.f.edit")
-                on: root.editingApi
-                onClicked: root.editingApi = !root.editingApi
-              }
-            }
+            selectable: false
+            selected: inUse
+            running: !!(l && l.live_running === true)
+            name: kind.name
+            // What it is actually set to, which differs per kind: the agent's
+            // name, the weights, the endpoint's model.
+            secondary: l ? String(l.live_engine || l.backend || "")
+                           + (l.model ? "  " + String(l.model).replace("llm:", "") : "")
+                         : ""
+            detail: kind.detail
+            status: !l ? root.t("models.k.unset")
+                    : l.live_problem ? root.t("models.nokey")
+                    : l.live_running === true ? root.t("models.running")
+                    : (l.remote ? root.t("models.ready") : root.t("models.coldshort"))
+            statusColor: !l ? Qt.darker(Color.muted, 1.2)
+                         : l.live_problem ? Color.urgent
+                         : l.live_running === true ? Color.accent
+                         : Qt.darker(Color.muted, 1.1)
+            note: (l && (l.used_by || []).length) ? (l.used_by || []).join(", ") : "—"
+            noteColor: inUse ? Color.accent : Qt.darker(Color.muted, 1.2)
+            actionLabel: kind.key === "api"
+                         ? (root.editingApi ? root.t("models.f.close")
+                                            : root.t("models.f.edit"))
+                         : ""
+            actionOn: root.editingApi
+            onAction: root.editingApi = !root.editingApi
           }
         }
 
