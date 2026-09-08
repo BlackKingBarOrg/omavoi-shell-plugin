@@ -157,7 +157,10 @@ Item {
       // ================= SPEECH =================
       Flickable {
         Layout.fillHeight: true
-        Layout.preferredWidth: Math.round(root.width * 0.58)
+        // Even halves. 58/42 made sense while each side had its own row and
+        // card code sized to its own content; sharing both components makes
+        // an uneven split the last thing left that does not match.
+        Layout.preferredWidth: Math.round(root.width * 0.5)
         clip: true
         contentHeight: speech.implicitHeight + root.pad * 2
 
@@ -252,10 +255,12 @@ Item {
               selected: root.payload.backend === eng.id
               running: up
               name: eng.name
-              // The same slot the LLM cards use for what a route is actually
-              // set to: the engine and weights, once this is the one running.
-              secondary: up ? String(root.speechNow.engine || "")
-                              + (root.speechNow.model ? "  " + root.speechNow.model : "")
+              // The weights, not the engine: the detail line below already
+              // opens with "whisper.cpp", and naming it here put it twice in
+              // one card. The LLM cards had the same duplication with
+              // llama.cpp, and both follow one rule now — the model when
+              // there is one, the engine only when there is not.
+              secondary: up ? String(root.speechNow.model || root.speechNow.engine || "")
                             : ""
               detail: eng.detail
               // Selected and not up is a fault here, unlike an LLM server,
@@ -469,10 +474,11 @@ Item {
             selected: inUse
             running: !!(l && l.live_running === true)
             name: kind.name
-            // What it is actually set to, which differs per kind: the agent's
-            // name, the weights, the endpoint's model.
-            secondary: l ? String(l.live_engine || l.backend || "")
-                           + (l.model ? "  " + String(l.model).replace("llm:", "") : "")
+            // What it is actually set to: the weights, or the agent's own
+            // name when it has no model of ours. Not both — the detail line
+            // below already names llama.cpp.
+            secondary: l ? (l.model ? String(l.model).replace("llm:", "")
+                                    : String(l.live_engine || l.backend || ""))
                          : ""
             detail: kind.detail
             status: !l ? root.t("models.k.unset")

@@ -134,9 +134,13 @@ Rectangle {
       font.pixelSize: Style.font.caption
       color: card.statusColor
     }
+    // Wide enough for the longest note either column has — "约 2.2 GB 的
+    // wheel 包" — because it was eliding to "约 2.2 GB 的 wh…". Fixed rather
+    // than content-sized so the status column beside it lands in the same
+    // place on every card.
     Text {
       Layout.alignment: Qt.AlignVCenter
-      Layout.preferredWidth: Style.space(96)
+      Layout.preferredWidth: Style.space(132)
       horizontalAlignment: Text.AlignRight
       elide: Text.ElideRight
       text: card.note
