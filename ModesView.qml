@@ -27,7 +27,12 @@ Item {
     return m.kind === "speech" && m.downloaded
            && (root.ggml ? m.fmt === "ggml" : m.fmt === "ct2")
   })
-  function llmLabel(name) {
+  // `withModel` is false wherever a weights row sits directly underneath: the
+  // model shown here comes from the *configuration*, so a step pinned to
+  // other weights was labelled with the ones it is not going to run — the
+  // same fault as reporting the config file instead of the live binding, at a
+  // smaller scale. Below the picker the kind is all this chip has to say.
+  function llmLabel(name, withModel) {
     var kind = name === "agent" ? root.t("models.k.agent")
              : name === "api" ? root.t("models.k.api")
              : name === "local" ? root.t("models.k.local")
@@ -35,7 +40,7 @@ Item {
     var m = root.llmModelOf(name)
     // The model only where it is a choice: the local weights, or an endpoint
     // whose model the user set. An agent uses its own default.
-    if (m !== "" && name !== "agent")
+    if (withModel !== false && m !== "" && name !== "agent")
       return kind + "  " + m.replace("llm:", "")
     return kind
   }
@@ -644,7 +649,7 @@ Item {
                     model: root.llms
                     OmChip {
                       readonly property string llmName: modelData
-                      label: root.llmLabel(llmName)
+                      label: root.llmLabel(llmName, !root.isLocalLlm(llmName))
                       on: llmName === step.llm
                       onClicked: if (!on) root.commandArgs(
                         ["omavoi", "mode", "step", root.current, "llm",

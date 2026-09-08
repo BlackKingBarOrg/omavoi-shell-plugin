@@ -150,7 +150,7 @@ PACK = {
                  "Prompt hier, bearbeitbar und mit brauchbarer Vorbelegung.",
  "modes.addstep": "+ Schritt hinzufügen",
  "modes.weights": 'Gewichte',
- "modes.inherit": 'Vorgabe (%1)',
+ "modes.inherit": 'der Konfiguration folgen (%1)',
  "modes.nollm": "kein LLM konfiguriert — siehe Tab Modelle",
  "modes.inject.auto": "auto",
  "modes.inject.clipboard": "Zwischenablage",

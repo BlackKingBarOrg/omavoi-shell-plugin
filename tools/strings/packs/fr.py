@@ -147,7 +147,7 @@ PACK = {
                  "modifiable, avec une valeur par défaut utilisable.",
  "modes.addstep": "+ ajouter une étape",
  "modes.weights": 'Poids',
- "modes.inherit": 'par défaut (%1)',
+ "modes.inherit": 'suivre la configuration (%1)',
  "modes.nollm": "aucun LLM configuré — voir l'onglet Modèles",
  "modes.inject.auto": "auto",
  "modes.inject.clipboard": "presse-papiers",

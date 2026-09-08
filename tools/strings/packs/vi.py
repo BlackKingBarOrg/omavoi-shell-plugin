@@ -144,7 +144,7 @@ PACK = {
                  "một giá trị mặc định dùng được.",
  "modes.addstep": "+ thêm một bước",
  "modes.weights": 'Trọng số',
- "modes.inherit": 'mặc định (%1)',
+ "modes.inherit": 'theo cấu hình (%1)',
  "modes.nollm": "chưa cấu hình LLM nào — xem thẻ Mô hình",
  "modes.inject.auto": "tự động",
  "modes.inject.clipboard": "clipboard",
