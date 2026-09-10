@@ -17,10 +17,12 @@ import qs.Ui
 // second copy of the LLM panel is how the two would have drifted the way the
 // rows and the cards did.
 //
-// `providers` is the one asymmetry, and it is a real one: the speech backend
-// ships presets (openai, groq, siliconflow, deepinfra, local) that fill the
-// URL, the model and the key's environment variable from one word. The LLM
-// side has no presets, so it passes an empty list and the row disappears.
+// Three fields, and only three. The speech backend does ship provider
+// presets, and a row of them was here for one revision — but a menu of
+// vendor names is a list of things to read about, not something to fill in,
+// and it made four controls out of a job that has three. The presets still
+// work from the config file, and the placeholders show whichever values one
+// is currently supplying, so a blank field never hides a surprise.
 ColumnLayout {
   id: fields
 
@@ -39,8 +41,6 @@ ColumnLayout {
   // placeholder so a preset is visible rather than magic.
   property string defaultBaseUrl: ""
   property string defaultModel: ""
-  property var providers: []
-  property string provider: ""
 
   signal command(string cmd)
 
@@ -92,34 +92,6 @@ ColumnLayout {
         fields.checkNote = r.ok === true
           ? fields.t("models.f.testok") + (r.models ? "  " + r.models.length : "")
           : String(r.error || fields.t("models.f.testfail"))
-      }
-    }
-  }
-
-  // -- provider, when there are presets to pick from ------------------------
-  RowLayout {
-    visible: (fields.providers || []).length > 0
-    Layout.fillWidth: true
-    spacing: Style.space(9)
-    Text {
-      Layout.preferredWidth: Style.space(52)
-      text: fields.t("models.f.provider")
-      font.family: Style.font.family
-      font.pixelSize: Style.font.caption
-      color: Color.muted
-    }
-    Flow {
-      Layout.fillWidth: true
-      spacing: Style.space(6)
-      Repeater {
-        model: fields.providers
-        OmChip {
-          readonly property string pid: modelData
-          label: pid
-          on: pid === fields.provider
-          onClicked: if (!on) fields.command(
-            "omavoi config set " + fields.prefix + ".provider " + pid)
-        }
       }
     }
   }

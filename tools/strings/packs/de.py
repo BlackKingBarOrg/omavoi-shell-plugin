@@ -201,7 +201,6 @@ PACK = {
  "models.f.test": 'Testen',
  "models.f.testing": 'frage den Endpunkt nach seinen Modellen …',
  "models.f.testok": 'geantwortet, %1 Modelle — wähle unten eines',
- "models.f.provider": 'Anbieter',
  "models.f.key.have": 'ein Schlüssel ist gespeichert',
  "models.f.testfail": 'keine Antwort',
  "models.speechapi": 'ENTFERNTER SPRACH-ENDPUNKT',

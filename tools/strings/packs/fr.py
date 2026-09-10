@@ -197,7 +197,6 @@ PACK = {
  "models.f.test": 'Tester',
  "models.f.testing": "on demande ses modèles au point d'accès…",
  "models.f.testok": 'a répondu, %1 modèles — choisis-en un ci-dessous',
- "models.f.provider": 'fournisseur',
  "models.f.key.have": 'une clé est enregistrée',
  "models.f.testfail": "pas de réponse",
  "models.speechapi": 'POINT DE TERMINAISON VOCAL DISTANT',

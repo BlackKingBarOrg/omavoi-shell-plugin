@@ -194,7 +194,6 @@ PACK = {
  "models.f.test": 'Kiểm tra',
  "models.f.testing": 'đang hỏi danh sách mô hình từ điểm cuối…',
  "models.f.testok": 'đã trả lời, %1 mô hình — chọn một bên dưới',
- "models.f.provider": 'nhà cung cấp',
  "models.f.key.have": 'đã lưu một khoá',
  "models.f.testfail": 'không có phản hồi',
  "models.speechapi": 'ĐIỂM CUỐI GIỌNG NÓI TỪ XA',

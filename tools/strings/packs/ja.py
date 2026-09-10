@@ -192,7 +192,6 @@ PACK = {
  "models.f.test": '接続テスト',
  "models.f.testing": 'エンドポイントにモデル一覧を問い合わせています…',
  "models.f.testok": '応答あり、%1 個のモデル —— 下から選んでください',
- "models.f.provider": 'プロバイダ',
  "models.f.key.have": 'キーは保存済み',
  "models.f.testfail": '応答がありません',
  "models.speechapi": 'リモート音声エンドポイント',

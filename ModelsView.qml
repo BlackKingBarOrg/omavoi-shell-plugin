@@ -338,8 +338,9 @@ Item {
             visible: root.editingSpeechApi && root.speechApi.provider !== undefined
             strings: root.strings
             prefix: "speech.api"
-            // Its own name, so a speech key and an LLM key can differ.
-            secretName: "speech-api"
+            // Whatever ApiWhisperBackend will read it by. Hardcoding a name
+            // here stored a key nothing would ever have found.
+            secretName: String(root.speechApi.key_name || "speech-api")
             checkArgv: ["omavoi", "speech", "check", "--json"]
             baseUrl: String(root.speechApi.base_url || "")
             model: String(root.speechApi.model || "")
@@ -348,8 +349,6 @@ Item {
             // left empty, rather than something that happens invisibly.
             defaultBaseUrl: String(root.speechApi.default_base_url || "")
             defaultModel: String(root.speechApi.default_model || "")
-            providers: root.speechApi.providers || []
-            provider: String(root.speechApi.provider || "")
             onCommand: function (c) { root.command(c) }
           }
 
@@ -556,7 +555,11 @@ Item {
           visible: root.editingApi && root.entryNamed("api") !== null
           strings: root.strings
           prefix: "llm.api"
-          secretName: "openai"
+          // The name the daemon actually reads the key by, not a guess.
+          secretName: {
+            var e = root.entryNamed("api")
+            return e ? String(e.key_name || "openai") : "openai"
+          }
           checkArgv: ["omavoi", "llm", "check", "api", "--json"]
           baseUrl: {
             var e = root.entryNamed("api"); return e ? String(e.base_url || "") : ""
@@ -569,8 +572,6 @@ Item {
           }
           defaultBaseUrl: "https://api.openai.com/v1"
           defaultModel: "gpt-4o-mini"
-          // No presets on this side, so the provider row stays away.
-          providers: []
           onCommand: function (c) { root.command(c) }
         }
 

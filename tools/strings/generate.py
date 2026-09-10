@@ -415,7 +415,6 @@ section("models", {
  "models.f.testok":    ("answered, %1 models — pick one below",
                         "有响应,%1 个模型 —— 在下面选一个",
                         "ตอบกลับแล้ว %1 โมเดล — เลือกด้านล่าง"),
- "models.f.provider": ("provider", "服务商", "ผู้ให้บริการ"),
  "models.f.key.have": ("a key is stored", "已存有密钥", "มีคีย์เก็บไว้แล้ว"),
  "models.f.testfail": ("it did not answer", "它没有回应", "ไม่มีการตอบกลับ"),
  "models.speechapi": ("REMOTE SPEECH ENDPOINT", "远程语音接入点", "ปลายทางเสียงระยะไกล"),

@@ -197,7 +197,6 @@ PACK = {
  "models.f.test": 'Probar',
  "models.f.testing": 'pidiendo sus modelos al endpoint…',
  "models.f.testok": 'respondió, %1 modelos — elige uno abajo',
- "models.f.provider": 'proveedor',
  "models.f.key.have": 'hay una clave guardada',
  "models.f.testfail": 'no respondió',
  "models.speechapi": 'ENDPOINT DE VOZ REMOTO',
