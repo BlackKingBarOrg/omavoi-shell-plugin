@@ -192,6 +192,13 @@ PACK = {
  "models.f.test": '接続テスト',
  "models.f.testing": 'エンドポイントにモデル一覧を問い合わせています…',
  "models.f.testok": '応答あり、%1 個のモデル —— 下から選んでください',
+ "models.f.provider": 'プロバイダ',
+ "models.f.key.have": 'キーは保存済み',
+ "models.f.testfail": '応答がありません',
+ "models.speechapi": 'リモート音声エンドポイント',
+ "models.speechapi.sub": '音声はこのマシンから出ます。上の「リモート API」で選択してください。',
+ "models.speechapi.cat": '下の一覧はローカルエンジンのウェイトで、'
+                         'リモートエンジンを選んでいる間は使われません。',
  "models.k.agent": 'システムのエージェント',
  "models.k.agent.sub": 'Omarchy が設定しているコーディングエージェント —— すでにログイン済み、キー不要、録音ごとに数秒の起動',
  "models.k.local": 'ローカルモデル',

@@ -201,6 +201,13 @@ PACK = {
  "models.f.test": 'Testen',
  "models.f.testing": 'frage den Endpunkt nach seinen Modellen …',
  "models.f.testok": 'geantwortet, %1 Modelle — wähle unten eines',
+ "models.f.provider": 'Anbieter',
+ "models.f.key.have": 'ein Schlüssel ist gespeichert',
+ "models.f.testfail": 'keine Antwort',
+ "models.speechapi": 'ENTFERNTER SPRACH-ENDPUNKT',
+ "models.speechapi.sub": 'Audio verlässt diesen Rechner. Oben unter „Entfernte API" auswählen.',
+ "models.speechapi.cat": 'Die Liste unten sind die Gewichte der lokalen Engine und wird '
+                         'nicht benutzt, solange die entfernte Engine gewählt ist.',
  "models.k.agent": 'System-Agent',
  "models.k.agent.sub": 'der Coding-Agent, auf den Omarchy gesetzt ist — bereits angemeldet, kein Key, Sekunden Startzeit pro Aufnahme',
  "models.k.local": 'Lokales Modell',

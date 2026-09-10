@@ -194,6 +194,13 @@ PACK = {
  "models.f.test": 'Kiểm tra',
  "models.f.testing": 'đang hỏi danh sách mô hình từ điểm cuối…',
  "models.f.testok": 'đã trả lời, %1 mô hình — chọn một bên dưới',
+ "models.f.provider": 'nhà cung cấp',
+ "models.f.key.have": 'đã lưu một khoá',
+ "models.f.testfail": 'không có phản hồi',
+ "models.speechapi": 'ĐIỂM CUỐI GIỌNG NÓI TỪ XA',
+ "models.speechapi.sub": 'Âm thanh sẽ ra khỏi máy này. Chọn nó ở trên trong "API từ xa".',
+ "models.speechapi.cat": 'Danh sách bên dưới là trọng số của engine cục bộ và không được '
+                         'dùng khi engine từ xa đang được chọn.',
  "models.k.agent": 'Agent hệ thống',
  "models.k.agent.sub": 'agent lập trình mà Omarchy đang đặt — đã đăng nhập, không cần khóa, mất vài giây khởi động mỗi lần',
  "models.k.local": 'Mô hình cục bộ',

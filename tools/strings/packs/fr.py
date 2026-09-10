@@ -197,6 +197,13 @@ PACK = {
  "models.f.test": 'Tester',
  "models.f.testing": "on demande ses modèles au point d'accès…",
  "models.f.testok": 'a répondu, %1 modèles — choisis-en un ci-dessous',
+ "models.f.provider": 'fournisseur',
+ "models.f.key.have": 'une clé est enregistrée',
+ "models.f.testfail": "pas de réponse",
+ "models.speechapi": 'POINT DE TERMINAISON VOCAL DISTANT',
+ "models.speechapi.sub": "L'audio quitte cette machine. À sélectionner ci-dessus sous « API distante ».",
+ "models.speechapi.cat": "La liste ci-dessous est celle des poids du moteur local ; "
+                         "elle ne sert pas quand le moteur distant est sélectionné.",
  "models.k.agent": 'Agent système',
  "models.k.agent.sub": "l'agent de code auquel Omarchy est réglé — déjà connecté, sans clé, quelques secondes de démarrage par prise",
  "models.k.local": 'Modèle local',

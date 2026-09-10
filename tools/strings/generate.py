@@ -415,6 +415,17 @@ section("models", {
  "models.f.testok":    ("answered, %1 models — pick one below",
                         "有响应,%1 个模型 —— 在下面选一个",
                         "ตอบกลับแล้ว %1 โมเดล — เลือกด้านล่าง"),
+ "models.f.provider": ("provider", "服务商", "ผู้ให้บริการ"),
+ "models.f.key.have": ("a key is stored", "已存有密钥", "มีคีย์เก็บไว้แล้ว"),
+ "models.f.testfail": ("it did not answer", "它没有回应", "ไม่มีการตอบกลับ"),
+ "models.speechapi": ("REMOTE SPEECH ENDPOINT", "远程语音接入点", "ปลายทางเสียงระยะไกล"),
+ "models.speechapi.sub": ("Audio leaves this machine. Selected above under 远程 API.",
+                          "音频会离开本机。在上面的「远程 API」里选中它才会生效。",
+                          "เสียงจะออกจากเครื่องนี้ เลือก \"远程 API\" ด้านบนเพื่อใช้งาน"),
+ "models.speechapi.cat": ("The list below is the local engine's weights and is "
+                          "not used while the remote engine is selected.",
+                          "下面的列表是本地引擎的权重，选中远程引擎时不会用到。",
+                          "รายการด้านล่างคือน้ำหนักของเอนจินในเครื่อง และไม่ถูกใช้เมื่อเลือกเอนจินระยะไกล"),
  "models.k.agent":     ("System agent", "系统 agent", "เอเจนต์ของระบบ"),
  "models.k.agent.sub": ("whichever coding agent Omarchy is set to — already logged in, "
                         "no key, seconds of startup per take",

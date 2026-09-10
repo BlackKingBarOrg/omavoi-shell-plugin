@@ -83,6 +83,23 @@ Item {
 
   // The fields are a detour, not the page: three rows say what is configured,
   // and only the one you are changing needs to be open.
+  // The remote speech endpoint. It had no payload at all, so the console
+  // offered a "remote API" engine card with nothing behind it — the engine
+  // could be selected and never configured.
+  readonly property var speechApi: payload.speech_api || ({})
+  readonly property bool speechApiBlank: {
+    var a = root.speechApi
+    if (a.provider === undefined) return false
+    // A provider preset supplies the URL, so blank means neither is there.
+    return (String(a.base_url || "") === ""
+            && String(a.default_base_url || "") === "")
+           || a.has_key !== true
+  }
+  property var speechApiOpen: null
+  readonly property bool editingSpeechApi: root.speechApiOpen !== null
+                                           ? root.speechApiOpen === true
+                                           : root.speechApiBlank
+
   // The endpoint panel starts open while there is nothing in it.
   //
   // It was collapsed behind an Edit button always, which was right for an
@@ -97,50 +114,6 @@ Item {
   }
   readonly property bool editingApi: root.apiOpen !== null ? root.apiOpen === true
                                                           : root.apiBlank
-  property string keyNote: ""
-  property string checkNote: ""
-  property bool checkOk: false
-  property var checkModels: []
-
-  Process {
-    id: keyWriter
-    command: ["omavoi", "secrets", "set", "openai"]
-    stdinEnabled: true
-    property string pending: ""
-    function send(value) {
-      keyWriter.pending = value
-      root.keyNote = ""
-      keyWriter.running = true
-    }
-    onStarted: {
-      // Written once the pipe exists, then closed so the reader sees EOF.
-      keyWriter.write(keyWriter.pending)
-      keyWriter.pending = ""
-      keyWriter.stdinEnabled = false
-    }
-    onExited: function (code, status) {
-      root.keyNote = code === 0 ? root.t("models.f.key.saved")
-                                : root.t("models.f.key.failed")
-      keyField.text = ""
-      root.command("omavoi config show --json")
-    }
-  }
-
-  Process {
-    id: checker
-    command: ["omavoi", "llm", "check", "api", "--json"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var r = ({})
-        try { r = JSON.parse(text) } catch (e) { r = ({ ok: false, error: text }) }
-        root.checkOk = r.ok === true
-        root.checkModels = r.ok === true ? (r.models || []) : []
-        root.checkNote = r.ok === true
-          ? root.tf("models.f.testok", String((r.models || []).length))
-          : String(r.error || "")
-      }
-    }
-  }
 
   // The configured entry behind one of the three kinds, or null when the
   // config has none — an older config may predate them.
@@ -331,6 +304,55 @@ Item {
             }
           }
 
+          // ---- the remote endpoint, when speech is the one going out ------
+          RowLayout {
+            Layout.topMargin: Style.space(6)
+            Layout.fillWidth: true
+            spacing: Style.space(9)
+            Text {
+              text: root.t("models.speechapi")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              font.letterSpacing: 1
+              color: Color.muted
+            }
+            Text {
+              Layout.fillWidth: true
+              elide: Text.ElideRight
+              text: root.t("models.speechapi.sub")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: Qt.darker(Color.muted, 1.15)
+            }
+            OmChip {
+              label: root.editingSpeechApi ? root.t("models.f.close")
+                                           : root.t("models.f.edit")
+              on: root.editingSpeechApi
+              onClicked: root.speechApiOpen = !root.editingSpeechApi
+            }
+          }
+
+          EndpointFields {
+            Layout.fillWidth: true
+            Layout.leftMargin: Style.space(22)
+            visible: root.editingSpeechApi && root.speechApi.provider !== undefined
+            strings: root.strings
+            prefix: "speech.api"
+            // Its own name, so a speech key and an LLM key can differ.
+            secretName: "speech-api"
+            checkArgv: ["omavoi", "speech", "check", "--json"]
+            baseUrl: String(root.speechApi.base_url || "")
+            model: String(root.speechApi.model || "")
+            hasKey: root.speechApi.has_key === true
+            // The preset's values as placeholders: what applies when the field is
+            // left empty, rather than something that happens invisibly.
+            defaultBaseUrl: String(root.speechApi.default_base_url || "")
+            defaultModel: String(root.speechApi.default_model || "")
+            providers: root.speechApi.providers || []
+            provider: String(root.speechApi.provider || "")
+            onCommand: function (c) { root.command(c) }
+          }
+
           // -- models --
           RowLayout {
             Layout.topMargin: Style.space(8)
@@ -343,7 +365,21 @@ Item {
               color: Color.muted
             }
             Item { Layout.fillWidth: true }
+            // The table below is the local engine's weights. With the remote
+            // engine selected it is still true and no longer relevant, and
+            // saying so is cheaper than a user wondering why "use" changed
+            // nothing they could hear.
             Text {
+              visible: root.payload.backend === "api"
+              Layout.maximumWidth: Style.space(300)
+              wrapMode: Text.Wrap
+              text: root.t("models.speechapi.cat")
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              color: "#e0af68"
+            }
+            Text {
+              visible: root.payload.backend !== "api"
               text: root.t("models.formathint")
               font.family: Style.font.family
               font.pixelSize: Style.font.caption
@@ -514,135 +550,28 @@ Item {
         }
 
         // ---- the three things a remote endpoint needs -----------------------
-        //
-        // A URL, a key and a model id. Everything else that used to be here —
-        // key_env, key_name, timeout, temperature — is machinery, and putting
-        // it on screen made a mechanism look like a decision. It lives in the
-        // config file for anyone who needs it.
-        ColumnLayout {
+        EndpointFields {
           Layout.fillWidth: true
           Layout.leftMargin: Style.space(22)
-          spacing: Style.space(5)
           visible: root.editingApi && root.entryNamed("api") !== null
-
-          Repeater {
-            model: [
-              { key: "url", label: root.t("models.f.url"),
-                place: "https://api.openai.com/v1" },
-              { key: "model", label: root.t("models.f.model"), place: "gpt-4o-mini" }
-            ]
-            RowLayout {
-              readonly property var f: modelData
-              Layout.fillWidth: true
-              spacing: Style.space(9)
-              Text {
-                Layout.preferredWidth: Style.space(52)
-                text: f.label
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                color: Color.muted
-              }
-              TextField {
-                Layout.fillWidth: true
-                Layout.maximumWidth: Style.space(320)
-                text: {
-                  var e = root.entryNamed("api")
-                  if (!e) return ""
-                  return f.key === "url" ? String(e.base_url || "")
-                                         : String(e.model || "")
-                }
-                placeholderText: f.place
-                font.family: Style.font.family
-                font.pixelSize: Style.font.caption
-                onEditingFinished: {
-                  var e = root.entryNamed("api")
-                  var was = !e ? "" : (f.key === "url" ? String(e.base_url || "")
-                                                       : String(e.model || ""))
-                  if (text === was) return
-                  root.command("omavoi config set llm.api."
-                               + (f.key === "url" ? "base_url" : "model")
-                               + " " + JSON.stringify(text))
-                }
-              }
-            }
+          strings: root.strings
+          prefix: "llm.api"
+          secretName: "openai"
+          checkArgv: ["omavoi", "llm", "check", "api", "--json"]
+          baseUrl: {
+            var e = root.entryNamed("api"); return e ? String(e.base_url || "") : ""
           }
-
-          // The key goes over stdin, never in a command line: a value in argv
-          // is readable from /proc by every process running as this user for
-          // as long as the command lives.
-          RowLayout {
-            Layout.fillWidth: true
-            spacing: Style.space(9)
-            Text {
-              Layout.preferredWidth: Style.space(52)
-              text: root.t("models.f.key")
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              color: Color.muted
-            }
-            TextField {
-              id: keyField
-              Layout.fillWidth: true
-              Layout.maximumWidth: Style.space(320)
-              echoMode: TextInput.Password
-              placeholderText: root.t("models.f.key.place")
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              onAccepted: if (text !== "") keyWriter.send(text)
-            }
-            Button {
-              enabled: keyField.text !== ""
-              text: root.t("models.f.key.save")
-              onClicked: keyWriter.send(keyField.text)
-            }
-            Text {
-              Layout.fillWidth: true
-              elide: Text.ElideRight
-              text: root.keyNote
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              color: root.keyNote === "" ? Color.muted : Color.accent
-            }
+          model: {
+            var e = root.entryNamed("api"); return e ? String(e.model || "") : ""
           }
-
-          RowLayout {
-            Layout.fillWidth: true
-            Layout.topMargin: Style.space(3)
-            spacing: Style.space(9)
-            Button {
-              text: root.t("models.f.test")
-              onClicked: { root.checkNote = root.t("models.f.testing"); checker.running = true }
-            }
-            Text {
-              Layout.fillWidth: true
-              wrapMode: Text.Wrap
-              text: root.checkNote
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              color: root.checkOk ? "#9ece6a" : Color.urgent
-            }
+          hasKey: {
+            var e = root.entryNamed("api"); return !!(e && e.has_key)
           }
-
-          // Offered rather than typed: the check already returned the list,
-          // and a model id from memory is the commonest thing to get wrong.
-          Flow {
-            Layout.fillWidth: true
-            spacing: Style.space(6)
-            visible: root.checkModels.length > 0
-            Repeater {
-              model: root.checkModels
-              OmChip {
-                readonly property string mid: modelData
-                label: mid
-                on: {
-                  var e = root.entryNamed("api")
-                  return e && String(e.model) === mid
-                }
-                onClicked: root.command(
-                  "omavoi config set llm.api.model " + JSON.stringify(mid))
-              }
-            }
-          }
+          defaultBaseUrl: "https://api.openai.com/v1"
+          defaultModel: "gpt-4o-mini"
+          // No presets on this side, so the provider row stays away.
+          providers: []
+          onCommand: function (c) { root.command(c) }
         }
 
           // -- the LLM catalogue --

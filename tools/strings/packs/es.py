@@ -197,6 +197,13 @@ PACK = {
  "models.f.test": 'Probar',
  "models.f.testing": 'pidiendo sus modelos al endpoint…',
  "models.f.testok": 'respondió, %1 modelos — elige uno abajo',
+ "models.f.provider": 'proveedor',
+ "models.f.key.have": 'hay una clave guardada',
+ "models.f.testfail": 'no respondió',
+ "models.speechapi": 'ENDPOINT DE VOZ REMOTO',
+ "models.speechapi.sub": 'El audio sale de esta máquina. Selecciónalo arriba en «API remota».',
+ "models.speechapi.cat": 'La lista de abajo son los pesos del motor local y no se usa '
+                         'mientras esté seleccionado el motor remoto.',
  "models.k.agent": 'Agente del sistema',
  "models.k.agent.sub": 'el agente de código al que está configurado Omarchy — ya con sesión, sin clave, segundos de arranque por toma',
  "models.k.local": 'Modelo local',
